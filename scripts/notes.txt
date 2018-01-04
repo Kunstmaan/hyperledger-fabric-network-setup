@@ -1,0 +1,113 @@
+To see logs: docker logs <instance-name>
+
+
+Error:
+SSL certificate can't be used for signing.
+Fix:
+Check if the path of the certificate is correct.
+--> Check path of volume mounts in docker compose files.
+--> Check if certificate exists
+
+
+Error:
+Can't create channel. TLS handshake does not look like a TLS handshake
+Fix:
+Make sure you are using http-S or grpc-S (https, grpcs) instead of http or grpc
+
+
+Error:
+start-could not start container: API error (404): {"message":"No such network: artifacts_default"}
+Fix:
+The issue comes from the CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE in base.yaml. Read https://docs.docker.com/compose/networking/
+Set the value to "bridge"
+
+Error:
+Failed obtaining connection: Could not connect to any of the endpoints: [orderer.example.com:7050] : The issue is that orderer.example.com is not a valid domain, so the instance does not know where to find it.
+Fix:
+Create an overlay network that spans the docker containers, using a key-value store such as consul.
+Run a slave of the key-value store on each of the container's hosts. Then connect the containers to that overlay network.
+See https://luppeng.wordpress.com/2016/05/03/setting-up-an-overlay-network-on-docker-without-swarm/
+
+
+Error:
+When doing peer join channel on the CLI, the following error appears: Caused by: x509: certificate signed by unknown authority
+Fix:
+Change CORE_PEER_TLS_ROOTCERT_FILE to include all intermediate certificates coming from the peer (order is important. Root is last, peer is first).
+---> cat peer-tls.cert intermediate1-tls.cert intermediate2-tls.cert root-tls.cert > combined.cert
+
+
+Error:
+When trying to instantiate node js code, the peer times out.
+Fix:
+Check that the DNS names are all lower caps
+
+
+Error:
+When trying to run migrations via the app, or anything via the app, it times out and the orderer shows:
+2017-12-29 07:34:58.696 UTC [grpc] Printf -> DEBU 868 grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38518": tls: first record does not look like a TLS handshake
+2017-12-29 07:34:58.697 UTC [grpc] Printf -> DEBU 869 grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38520": tls: first record does not look like a TLS handshake
+2017-12-29 07:34:58.699 UTC [grpc] Printf -> DEBU 86a grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38522": tls: first record does not look like a TLS handshake
+2017-12-29 07:34:58.701 UTC [grpc] Printf -> DEBU 86b grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38524": tls: first record does not look like a TLS handshake
+2017-12-29 07:34:58.703 UTC [grpc] Printf -> DEBU 86c grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38526": tls: first record does not look like a TLS handshake
+2017-12-29 07:34:58.704 UTC [grpc] Printf -> DEBU 86d grpc: Server.Serve failed to complete security handshake from "192.168.100.7:38528": tls: first record does not look like a TLS handshake
+Fix:
+Make sure the app can resolve hostnames. In particular, make sure it ran set_hosts_private.sh and that /etc/hosts has been modified.
+
+
+Error:
+Command hangs when cloning/pulling from github.
+Fix:
+Did you check the AWS firewall ? You need SSH(port 22) & Git(port 9418) outbound access to github.com If you're using https, then you need HTTPS instead.
+
+#############################
+Adding a peer (using easyrsa)
+#############################
+1. Add the peer configuration in app/network-config.json:
+Tip: Make sure the ports don't overlap with another peer, if running all dockers on a single machine
+  "peer3": {
+    "requests": "grpcs://localhost:7061",
+    "events": "grpcs://localhost:7063",
+    "server-hostname": "peer2.org1.example.com",
+    "tls_cacerts": "../artifacts/channel/crypto-config/peerOrganizations/org1.example.com/peers/peer2.org1.example.com/tls/ca.crt"
+  }
+2. Add the peer in docker-compose, from the settings in app/network-config.json
+3. Install easy-rsa and enable ecdsa
+  3a. copy vars.example to vars
+  3b. Edit vars:
+      - Uncomment set_var EASYRSA_ALGO and set it to "ec"
+      - Uncomment set_var EASYRSA_CURVE and set it to "prime256v1"
+4. Configure certificates
+  4a. Copy over a config directory, for example peer1.org1.example.com
+  4b. There are 4 files we need to change from the configuration folder of another peer:
+        - <peer-folder>/msp/keystore/<the ca key file>
+        - <peer-folder>/msp/signcerts/<the ca certificate file>
+        - <peer-folder>/tls/<the tls server key file>
+        - <peer-folder>/tls/<the tls server certificate file>
+
+  4c. Change the CA certificate & keyfile
+      - delete any existing pki folder
+      - ./easyrsa init-pki
+      - copy and rename <org-folder>/ca/<the ca certificate file> to <easyrsa>/pki/ca.crt
+      - copy and rename <org-folder>/ca/<the ca key file> to <easyrsa>/pki/private/ca.key
+      - ./easyrsa gen-req <peer host name> nopass # Generates the request, use nopass to avoid encrypting the key
+      - Enter the host name of the peer
+      - ./easyrsa sign-req client <peer host name>
+      - Confirm by typing yes
+      - copy <easyrsa>/pki/private/<hostname>.key to <peer-folder>/msp/keystore/
+      - copy and rename <easyrsa>/pki/issued/<hostname>.crt to <peer-folder>/msp/signcerts/<hostnam>-cert.pem
+  4d. Change the TSL certificate & keyfile
+    - do 4c but sign-req for server (and not client)
+    - copy and rename <easyrsa>/pki/private/<hostname>.key to <peer-folder>/tls/server.key
+    - copy and rename <easyrsa>/pki/issued/<hostname>.crt to <peer-folder>/tls/server.crt
+
+5. That's it !
+
+
+
+
+#############################
+        TODO
+#############################
+- Add shared admins between orgs
+- Why do we need to modify /etc/hosts in the docker image when running fabcar ?
+  It should resolve the name with docker DNS...

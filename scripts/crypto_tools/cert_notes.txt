@@ -1,0 +1,142 @@
+This file is a summary of the kind of extensions involved for each type of certificate
+
+---------------
+  Admin CA
+---------------
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature
+    X509v3 Basic Constraints: critical
+        CA:FALSE
+    X509v3 Authority Key Identifier:
+        keyid:42:39:AA:0D:CD:76:DA:EE:B8:BA:0C:DA:70:18:51:D1:45:04:D3:1A:AD:1B:2D:DD:DB:AC:6A:57
+
+
+---------------
+  Admin TLS
+---------------
+
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature, Key Encipherment
+    X509v3 Extended Key Usage:
+        TLS Web Server Authentication, TLS Web Client Authentication
+    X509v3 Basic Constraints: critical
+        CA:FALSE
+    X509v3 Authority Key Identifier:
+        keyid:ED:3F:D8:23:93:E9:5F:C2:C4:75:AF:C1:13:C8:D2:C5:91:F7:45:D1:BA:BC:4D:6D:9C:CE:0A:1A
+
+---------------
+  Users CA
+---------------
+
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature
+    X509v3 Basic Constraints: critical
+        CA:FALSE
+    X509v3 Authority Key Identifier:
+        keyid:42:39:AA:0D:CD:76:DA:EE:B8:BA:0C:DA:70:18:51:D1:45:04:D3:1A:AD:1B:2D:DD:DB:AC:6A:57
+
+---------------
+  Users TLS
+---------------
+
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature, Key Encipherment
+    X509v3 Extended Key Usage:
+        TLS Web Server Authentication, TLS Web Client Authentication
+    X509v3 Basic Constraints: critical
+        CA:FALSE
+    X509v3 Authority Key Identifier:
+        keyid:ED:3F:D8:23:93:E9:5F:C2:C4:75:AF:C1:13:C8:D2:C5:91:F7:45:D1:BA:BC:4D:6D:9C:CE:0A:1A
+
+---------------
+  Root CA
+---------------
+
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature, Key Encipherment, Certificate Sign, CRL Sign
+    X509v3 Extended Key Usage:
+        2.5.29.37.0 ----> anyExtendedKeyUsage
+    X509v3 Basic Constraints: critical
+        CA:TRUE
+    X509v3 Subject Key Identifier:
+        A0:60:6A:4A:86:0A:1E:31:C9:0A:23:78:8D:A6:F3:B6:B7:49:25:ED:0D:23:06:1A:F4:89:94:09:BA:46
+
+---------------
+Intermediate CA
+---------------
+
+  - Orderer:
+    X509v3 extensions:
+      X509v3 Key Usage: critical
+          Digital Signature
+      X509v3 Basic Constraints: critical
+          CA:FALSE
+      X509v3 Authority Key Identifier:
+          keyid:A0:60:6A:4A:86:0A:1E:31:C9:0A:23:78:8D:A6:F3:B6:B7:49:25:ED:0D:23:06:1A:F4:89:94:09
+
+
+  - Peers:
+    X509v3 extensions:
+      X509v3 Key Usage: critical
+          Digital Signature
+      X509v3 Basic Constraints: critical
+          CA:FALSE
+      X509v3 Authority Key Identifier:
+          keyid:42:39:AA:0D:CD:76:DA:EE:B8:BA:0C:DA:70:18:51:D1:45:04:D3:1A:AD:1B:2D:DD:DB:AC:6A:57
+
+
+
+---------------
+  Root TLS
+---------------
+
+X509v3 extensions:
+    X509v3 Key Usage: critical
+        Digital Signature, Key Encipherment, Certificate Sign, CRL Sign
+    X509v3 Extended Key Usage:
+        2.5.29.37.0 ----> anyExtendedKeyUsage
+    X509v3 Basic Constraints: critical
+        CA:TRUE
+    X509v3 Subject Key Identifier:
+        8D:21:86:55:6C:85:D5:15:E7:37:D0:C0:DA:8D:0D:76:72:78:5B:68:5C:B5:03:BC:B9:5E:53:DC:C2:79
+
+---------------
+Intermediate TLS
+---------------
+
+  - Orderer:
+    X509v3 extensions:
+        X509v3 Key Usage: critical
+            Digital Signature, Key Encipherment
+        X509v3 Extended Key Usage:
+            TLS Web Server Authentication, TLS Web Client Authentication
+        X509v3 Basic Constraints: critical
+            CA:FALSE
+        X509v3 Authority Key Identifier:
+            keyid:8D:21:86:55:6C:85:D5:15:E7:37:D0:C0:DA:8D:0D:76:72:78:5B:68:5C:B5:03:BC:B9:5E:53:DC
+        X509v3 Subject Alternative Name:
+            DNS:orderer.example.com, DNS:orderer
+
+
+  - Peers:
+    X509v3 extensions:
+        X509v3 Key Usage: critical
+            Digital Signature, Key Encipherment
+        X509v3 Extended Key Usage:
+            TLS Web Server Authentication, TLS Web Client Authentication
+        X509v3 Basic Constraints: critical
+            CA:FALSE
+        X509v3 Authority Key Identifier:
+            keyid:ED:3F:D8:23:93:E9:5F:C2:C4:75:AF:C1:13:C8:D2:C5:91:F7:45:D1:BA:BC:4D:6D:9C:CE:0A:1A:CC:16:8A:CB
+
+        X509v3 Subject Alternative Name:
+            DNS:peer0.org1.example.com, DNS:peer0
+
+
+
+  - Peers:

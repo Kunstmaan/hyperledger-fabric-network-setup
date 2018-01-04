@@ -1,0 +1,19 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "foo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "js-sha3": "^0.6.1",
+    "jsrsasign": "^8.0.4",
+    "jssha": "^2.3.1",
+    "sjcl": "^1.0.7",
+    "sjcl-codec": "^0.1.1"
+  }
+}
