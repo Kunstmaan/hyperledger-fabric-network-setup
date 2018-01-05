@@ -15,7 +15,7 @@ then
 fi
 
 ORG=$1
-CHANNEL=$2
+# CHANNEL=$2 # Not used currently
 FOLDER=$GEN_PATH/docker
 mkdir -p "$FOLDER"
 FILE="$FOLDER/tools.$ORG.yaml"
@@ -31,7 +31,6 @@ services:
     tty:          true
     working_dir:  /etc/hyperledger
     container_name: tools.$ORG
-    # command: /etc/hyperledger/create_and_join_public_channel.sh $CHANNEL
     environment:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledgerNet
       - GOPATH=/opt/gopath
