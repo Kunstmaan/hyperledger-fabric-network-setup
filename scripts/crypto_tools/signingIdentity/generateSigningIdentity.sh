@@ -17,13 +17,15 @@ KEY_FILE=$USER_FOLDER/ca/ca.$USER_FULL_NAME-key.pem
 USER_BASE_NAME=$( cut -d '.' -f 1 <<< "$USER_FULL_NAME" )
 ORG=$( cut -d '.' -f 2- <<< "$USER_FULL_NAME" )
 
-if [ ! -d "$CRYPTO_OPENSSL_TOOLS_PATH/signingIdentity/node_modules" ]; then
-  pushd $CRYPTO_OPENSSL_TOOLS_PATH/signingIdentity/
+INSTALL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ ! -d "$INSTALL_DIR/node_modules" ]; then
+  pushd $INSTALL_DIR
     npm install
   popd
 fi
 
-signingIdentity=$(node "$CRYPTO_OPENSSL_TOOLS_PATH/signingIdentity/generateSigningIdentity.js" "$CERT_FILE")
+signingIdentity=$(node "$INSTALL_DIR/generateSigningIdentity.js" "$CERT_FILE")
 
 hfcKeyStorePath=$GEN_PATH/hfc-key-store
 mkdir -p $hfcKeyStorePath
