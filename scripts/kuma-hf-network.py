@@ -13,6 +13,8 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from argparse import Namespace
 
+
+install_script = "https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftozVgLy29XPcsF_g0FnmiJb5wWkuks5aXIhFwA%3D%3D"
 DEBUG = False
 PWD = os.path.dirname(__file__)
 
@@ -103,7 +105,7 @@ def bootstrap(parsed_args):
 
 
 def update_tool(parsed_args):
-    print 'TODO'
+    call("curl -fsSL", install_script, " | bash")
 
 PARSER = ArgumentParser(description="""This tool allows you to create a certificate structure for hyperledger fabric,
 and then to use that structure to boot a multinode network on Amazon Web Services.
