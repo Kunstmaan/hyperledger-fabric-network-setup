@@ -1,7 +1,19 @@
 # Install:
-curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash
+
+`curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash`
+
+# Requirements:
+
+* Git
+* Python modules: <https://www.python.org/downloads/>
+    * pyaml <https://github.com/yaml/pyyaml>
+* Vagrant plugins (for running the network on AWS): <https://www.vagrantup.com/docs/installation/>
+    * vagrant-aws
+    * vagrant-docker-compose
+* NPM <https://docs.npmjs.com/getting-started/installing-node>
 
 # Scripts:
+
 ---
 #### Environment variables description:
 * `GEN_PATH`: The path to the folder that should contain crypto-config, docker files and channel artifacts
