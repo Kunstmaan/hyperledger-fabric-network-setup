@@ -5,12 +5,12 @@
 # Requirements:
 
 * Git
-* Python modules: <https://www.python.org/downloads/>
-    * pyaml <https://github.com/yaml/pyyaml>
-* Vagrant plugins (for running the network on AWS): <https://www.vagrantup.com/docs/installation/>
+* [Python](https://www.python.org/downloads/) modules:
+    * [pyaml](https://github.com/yaml/pyyaml)
+* [Vagrant](https://www.vagrantup.com/docs/installation/) plugins (for running the network on AWS):
     * vagrant-aws
     * vagrant-docker-compose
-* NPM <https://docs.npmjs.com/getting-started/installing-node>
+* [NPM](https://docs.npmjs.com/getting-started/installing-node)
 
 # Scripts:
 
