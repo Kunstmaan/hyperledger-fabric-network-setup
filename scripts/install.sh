@@ -3,7 +3,7 @@
 INSTALL_REPO=git@github.com:Kunstmaan/hyperledger-fabric-network-setup.git
 
 INSTALL_DIR=/opt/hyperledger-fabric-network-setup
-mkdir -p $INSTALL_DIR
+sudo mkdir -p $INSTALL_DIR
 
 BINARY_NAME=kuma-hf-network
 
@@ -20,9 +20,9 @@ else
     pushd "$INSTALL_DIR" && git clone $INSTALL_REPO && popd
 fi
 
-rm -rf /usr/local/bin/$BINARY_NAME
-ln -s $INSTALL_DIR/scripts/$BINARY_NAME.py /usr/local/bin/$BINARY_NAME
-chmod +x /usr/local/bin/$BINARY_NAME
+sudo rm -rf /usr/local/bin/$BINARY_NAME
+sudo ln -s $INSTALL_DIR/scripts/$BINARY_NAME.py /usr/local/bin/$BINARY_NAME
+sudo chmod +x /usr/local/bin/$BINARY_NAME
 
 if ! command -v python > /dev/null 2>&1; then
     echo """Python is not detected on this system. This script needs it as dependency.
