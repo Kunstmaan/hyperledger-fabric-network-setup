@@ -1,3 +1,6 @@
+# Install:
+curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash
+
 # Scripts:
 ---
 #### Environment variables description:
