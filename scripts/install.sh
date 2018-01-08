@@ -20,10 +20,9 @@ else
     pushd "$INSTALL_DIR" && git clone $INSTALL_REPO && popd
 fi
 
-echo "Asking sudo rights to create a symlink in /usr/local/bin/$BINARY_NAME"
-sudo rm -rf /usr/local/bin/$BINARY_NAME
-sudo ln -s $INSTALL_DIR/scripts/$BINARY_NAME.py /usr/local/bin/$BINARY_NAME
-sudo chmod +x /usr/local/bin/$BINARY_NAME
+rm -rf /usr/local/bin/$BINARY_NAME
+ln -s $INSTALL_DIR/scripts/$BINARY_NAME.py /usr/local/bin/$BINARY_NAME
+chmod +x /usr/local/bin/$BINARY_NAME
 
 if ! command -v python > /dev/null 2>&1; then
     echo """Python is not detected on this system. This script needs it as dependency.
