@@ -14,10 +14,10 @@ fi
 
 if [ -d "$INSTALL_DIR/.git" ]; then
     echo "=> hyperledger-fabric-network-setup is already installed in $INSTALL_DIR, trying to update the script"
-    pushd "$INSTALL_DIR/.git" && git pull $INSTALL_REPO && popd
+    pushd "$INSTALL_DIR" && git pull $INSTALL_REPO && popd
 else
     echo "Downloading hyperledger-fabric-network-setup in $INSTALL_DIR..."
-    pushd "$INSTALL_DIR/.git" && git clone $INSTALL_REPO && popd
+    pushd "$INSTALL_DIR" && git clone $INSTALL_REPO && popd
 fi
 
 rm -rf /usr/local/bin/$BINARY_NAME
