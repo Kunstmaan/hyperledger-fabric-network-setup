@@ -39,8 +39,21 @@ You can install them with:
 vagrant plugin install vagrant-docker-compose && vagrant plugin install vagrant-aws
 """
 else
-    echo "Installing vagrant plugins vagrant-docker-compose and vagrant-aws"
-    vagrant plugin install vagrant-docker-compose && vagrant plugin install vagrant-aws
+    vagrant plugin list | grep 'vagrant-aws' &> /dev/null
+    if [ $? != 0 ]; then
+        echo "Installing vagrant plugin vagrant-aws"
+        vagrant plugin install vagrant-aws
+    else
+        echo "Vagrant plugin vagrant-aws is already installed"
+    fi
+
+    vagrant plugin list | grep 'vagrant-docker-compose' &> /dev/null
+    if [ $? != 0 ]; then
+        echo "Installing vagrant plugin vagrant-docker-compose"
+        vagrant plugin install vagrant-docker-compose
+    else
+        echo "Vagrant plugin vagrant-docker-compose is already installed"
+    fi
 fi
 
 if ! command -v node > /dev/null 2>&1; then
