@@ -2,8 +2,8 @@
 
 INSTALL_REPO=git@github.com:Kunstmaan/hyperledger-fabric-network-setup.git
 
-INSTALL_DIR=/opt/hyperledger-fabric-network-setup
-sudo mkdir -p $INSTALL_DIR
+INSTALL_DIR=$HOME/.hyperledger-fabric-network-setup
+mkdir -p $INSTALL_DIR
 
 BINARY_NAME=kuma-hf-network
 
@@ -14,12 +14,13 @@ fi
 
 if [ -d "$INSTALL_DIR/.git" ]; then
     echo "=> hyperledger-fabric-network-setup is already installed in $INSTALL_DIR, trying to update the script"
-    pushd "$INSTALL_DIR" && sudo git pull $INSTALL_REPO && popd
+    pushd "$INSTALL_DIR" && git pull $INSTALL_REPO && popd
 else
     echo "Downloading hyperledger-fabric-network-setup in $INSTALL_DIR..."
-    pushd "$INSTALL_DIR" && sudo git clone $INSTALL_REPO && popd
+    pushd "$INSTALL_DIR" && git clone $INSTALL_REPO && popd
 fi
 
+echo "Asking sudo rights to create a symlink in /usr/local/bin/$BINARY_NAME"
 sudo rm -rf /usr/local/bin/$BINARY_NAME
 sudo ln -s $INSTALL_DIR/scripts/$BINARY_NAME.py /usr/local/bin/$BINARY_NAME
 sudo chmod +x /usr/local/bin/$BINARY_NAME
