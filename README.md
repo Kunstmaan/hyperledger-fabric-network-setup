@@ -10,8 +10,8 @@ Install the dependencies:
 * [NPM](https://docs.npmjs.com/getting-started/installing-node)
 * [aws](https://aws.amazon.com/cli/) command line with the region and keys configured (run `aws configure`)
 * Environment variables
-   * AWS_SECRET_ACCESS_KEY=<your aws secret key>
-   * AWS_ACCESS_KEY_ID=<your aws access key id>
+   * AWS_SECRET_ACCESS_KEY=your aws secret key
+   * AWS_ACCESS_KEY_ID=your aws access key id
 
 Run the following command from your terminal:
 
