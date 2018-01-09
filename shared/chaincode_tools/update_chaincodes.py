@@ -16,6 +16,10 @@ DEBUG = False
 GOPATH = os.environ['GOPATH']
 CONF_FILE = GOPATH + '/src/chaincodes.json'
 
+DRYRUN = False # Debug only
+if DRYRUN:
+    CONF_FILE = GOPATH + '/chaincodes.json'
+
 def fail(msg):
     """Prints the error message and exits"""
     sys.stderr.write(msg)
@@ -32,6 +36,9 @@ def call(script, *args):
     cmd = script + " " + " ".join(args)
     if DEBUG:
         print cmd
+    if DRYRUN:
+        print cmd
+        return "hi"
     proc = subprocess.Popen("bash -c '" + cmd + "'", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, error = proc.communicate()
     if proc.returncode != None and proc.returncode != 0:
@@ -39,54 +46,54 @@ def call(script, *args):
         fail("An error occured while executing " + cmd + ". See above for details. Error:\n" + error)
     return out
 
-def is_installed_or_instantiated(peer, installed, ignore_version=False):
+def is_instantiated_or_installed(data, installed, ignore_version):
     """Checks if the chaincode is installed or instantiated on the channel"""
-    chain_info = call(source_peer(peer), "&&", "peer chaincode",
-                      "--cafile", orderer_ca,
-                      "--orderer", orderer_host_port,
+    chain_info = call(source_peer(data['peer']), "&&", "peer chaincode",
+                      "--cafile", data['orderer_ca'],
+                      "--orderer", data['orderer_host_port'],
                       "list",
                       ("--installed" if installed else "--instantiated"),
-                      "--channelID", channel_id,
+                      "--channelID", data['channel_id'],
                       "--tls true"
                      )
 
-    pattern = "name:\"" + chaincode_name + "\" version:\"" + (".*" if ignore_version else chaincode_version) + "\" path:\"" + chaincode_path + "\""
+    pattern = "name:\"" + data['chaincode_name'] + "\" version:\"" + (".*" if ignore_version else data['chaincode_version']) + "\" path:\"" + data['chaincode_path'] + "\""
     match_obj = re.search(pattern, chain_info)
     if match_obj:
         return True
     return False
 
-def compile_chaincode(cc_language):
-    """Compiles the chaincode"""
-    if cc_language == "golang":
-        print "==> Compiling "+info + "..."
-        call("/etc/hyperledger/chaincode_tools/compile_chaincode.sh", chaincode_path)
-        print "Done. Compiled "+info + "!"
-    elif cc_language == "node":
-        print "==> Installing NPM for "+info + "..."
-        call("npm", "install", "--prefix", chaincode_path)
-        print "Done. Installed NPM for "+info + "!"
+def is_instantiated(data, ignore_version=False):
+    """Checks if the chaincode is instantiated on the channel"""
+    return is_instantiated_or_installed(data, False, ignore_version)
 
-def install_chaincode(peer, must_compile_cc, cc_language):
+def is_installed(data, ignore_version=False):
+    """Checks if the chaincode is installed on the channel"""
+    return is_instantiated_or_installed(data, True, ignore_version)
+
+def compile_chaincode(data):
+    """Compiles the chaincode"""
+    if data['chaincode_language'] == "golang":
+        call("/etc/hyperledger/chaincode_tools/compile_chaincode.sh", data['chaincode_path'])
+        return "==> Compiled " + data['info'] + "!"
+    elif data['chaincode_language'] == "node":
+        call("npm", "install", "--prefix", data['chaincode_path'])
+        return "==> Installed NPM for " + data['info'] + "!"
+
+def install_chaincode(data):
     """Installs chaincode on all the peers"""
-    if not is_installed_or_instantiated(peer, installed=True):
-        if must_compile_cc:
-            compile_chaincode(cc_language)
-            must_compile_cc = False
-        print "==> Installing " + info + " on " + peer + "..."
-        call(source_peer(peer), "&&", "peer chaincode",
-             "--cafile", orderer_ca,
-             "--orderer", orderer_host_port,
+    if not is_installed(data):
+        call(source_peer(data['peer']), "&&", "peer chaincode",
+             "--cafile", data['orderer_ca'],
+             "--orderer", data['orderer_host_port'],
              "install",
-             "--name", chaincode_name,
-             "--version", chaincode_version,
-             "--path", chaincode_path,
-             "--lang", chaincode_language
+             "--name", data['chaincode_name'],
+             "--version", data['chaincode_version'],
+             "--path", data['chaincode_path'],
+             "--lang", data['chaincode_language']
             )
-        print "Done. Installed " + info + " on " + peer + "!"
-    else:
-        print "==> " + info + " is already installed on " + peer + "!"
-    return must_compile_cc
+        return "==> Installed " + data['info'] + " on " + data['peer'] + "!"
+    return "==> " + data['info'] + " is already installed on " + data['peer'] + "!"
 
 def source_peer(peer):
     """Sets environment variables for that peer"""
@@ -94,8 +101,8 @@ def source_peer(peer):
 
 def instantiate_chaincode(data):
     """Instantiates chaincode on one of the peers"""
-    if not is_installed_or_instantiated(data['peer'], installed=False):
-        upgrade = is_installed_or_instantiated(data['peer'], installed=False, ignore_version=True)
+    if not is_instantiated(data):
+        upgrade = is_instantiated(data, ignore_version=True)
 
         call(source_peer(data['peer']), "&&", "peer chaincode",
              "--cafile", data['orderer_ca'],
@@ -106,34 +113,37 @@ def instantiate_chaincode(data):
              "--version", data['chaincode_version'],
              "--ctor", """\"{\\\"Args\\\":[\\\"Init\\\""""+data['instantiate_args']+"""]}\"""",
              "--channelID", data['channel_id'],
-             # "--policy", '\"' + chaincode_policy + '\"', TODO
+             # "--policy", '\"' + data['chaincode_policy'] + '\"', TODO
              "--tls true",
              "--lang", data['chaincode_language']
             )
 
         if upgrade:
-            return "Done. Upgraded " + data['info'] + " on " + data['peer'] + "!"
-        else:
-            return "Done. Instantiated " + data['info'] + " on " + data['peer'] + "!"
-    else:
-        return "==> " + data['info'] + " is already instantiated on " + data['peer'] + "!"
+            return "==> Upgraded " + data['info'] + " on " + data['peer'] + "!"
+        return "==> Instantiated " + data['info'] + " on " + data['peer'] + "!"
+    return "==> " + data['info'] + " is already instantiated on " + data['peer'] + "!"
 
 def format_args(args):
     """Formats the args with escaped " """
     comma = "," if args else ""
     return comma + ",".join(['\\\"' + a + '\\\"' for a in args])
 
-# First pull latest version of chaincode:
-subprocess.call("/etc/hyperledger/chaincode_tools/pull_chaincode.sh {0}".format(REPOSITORY), shell=True)
+if not DRYRUN:
+    # First pull latest version of chaincode:
+    subprocess.call("/etc/hyperledger/chaincode_tools/pull_chaincode.sh {0}".format(REPOSITORY), shell=True)
 
-subprocess.call("npm install --production --prefix " + GOPATH + "/src", shell=True)
-subprocess.call("npm run build --prefix " + GOPATH + "/src", shell=True)
+    subprocess.call("npm install --production --prefix " + GOPATH + "/src", shell=True)
+    subprocess.call("npm run build --prefix " + GOPATH + "/src", shell=True)
 
 with open(CONF_FILE) as chaincodes_stream:
     try:
-        instantiate_data = []
+        COMPILE_DATA = []
+        INSTALL_DATA = []
+        INSTANTIATE_DATA = []
         for chaincode_path in json.load(chaincodes_stream):
             absolute_chaincode_path = GOPATH + "/src/build/" + chaincode_path
+            if DRYRUN:
+                absolute_chaincode_path = GOPATH + "/src/chaincodes/" + chaincode_path
             with open(absolute_chaincode_path + "/package.json") as stream:
                 try:
                     chaincode = json.load(stream)
@@ -153,6 +163,7 @@ with open(CONF_FILE) as chaincodes_stream:
                         fail("Unknown chaincode language " + chaincode_language + " ! Aborting.")
 
                     info = "chaincode " + chaincode_name + " version " + chaincode_version + " at " + chaincode_path
+
                     for net_config in chaincode["hf-network"]:
                         channel_id = net_config["channelId"]
                         instantiate_args = format_args(net_config["instantiateArgs"])
@@ -163,33 +174,47 @@ with open(CONF_FILE) as chaincodes_stream:
                         orderer_org = ".".join(orderer_host.split(".")[-2:])
                         orderer_ca = "/etc/hyperledger/crypto-config/" + orderer_org + "/orderers/" + orderer_host + "/tlsca.combined." + orderer_host + "-cert.pem"
 
+                        the_data = {}
                         for the_peer in net_config["peers"]:
+                            the_data = {
+                                'peer': the_peer,
+                                'info': info,
+                                'orderer_ca': orderer_ca,
+                                'orderer_host_port': orderer_host_port,
+                                'chaincode_name': chaincode_name,
+                                'chaincode_version': chaincode_version,
+                                'chaincode_path': chaincode_path,
+                                'chaincode_policy': chaincode_policy,
+                                'instantiate_args': instantiate_args,
+                                'channel_id': channel_id,
+                                'chaincode_language': chaincode_language
+                            }
+                            # Compile the chaincode only once
+                            if not is_installed(the_data):
+                                if not any(d['chaincode_path'] == chaincode_path for d in COMPILE_DATA):
+                                    COMPILE_DATA.append(the_data)
+
                             # Install chaincode on all peers
-                            must_compile = install_chaincode(the_peer, must_compile, chaincode_language)
+                            INSTALL_DATA.append(the_data)
 
                         # Instantiate chaincode on one (the last) of the peers
-                        peer = net_config["peers"][0]
-                        data = {
-                            'peer': peer,
-                            'info': info,
-                            'orderer_ca': orderer_ca,
-                            'orderer_host_port': orderer_host_port,
-                            'chaincode_name': chaincode_name,
-                            'chaincode_version': chaincode_version,
-                            'instantiate_args': instantiate_args,
-                            'channel_id': channel_id,
-                            'chaincode_language': chaincode_language
-                        }
-
-                        instantiate_data.append(data)
+                        if net_config["peers"]:
+                            INSTANTIATE_DATA.append(the_data)
                     print ""
 
                 except ValueError as exc:
                     print exc
 
-        results = ThreadPool(10).imap_unordered(instantiate_chaincode, instantiate_data)
-        for i, result in enumerate(results, 1):
-            print result
+        func_mapping = [[compile_chaincode, COMPILE_DATA, "----> COMPILING..."], [install_chaincode, INSTALL_DATA, "----> INSTALLING..."], [instantiate_chaincode, INSTANTIATE_DATA, "----> INSTANTIATING..."]]
+        for func, the_data, info in func_mapping:
+            print info
+            pool = ThreadPool(10)
+            results = pool.imap_unordered(func, the_data)
+            for result in results:
+                print result
+            pool.close()
+            pool.join()
+            print info + "DONE !"
 
     except ValueError as exc:
         print exc
