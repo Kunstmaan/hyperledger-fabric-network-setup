@@ -1,16 +1,21 @@
 # Install:
 
-`curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash`
-
-# Requirements:
-
+Install the dependencies:
 * Git
 * [Python](https://www.python.org/downloads/) modules:
     * [pyaml](https://github.com/yaml/pyyaml)
 * [Vagrant](https://www.vagrantup.com/docs/installation/) plugins (for running the network on AWS):
-    * vagrant-aws
-    * vagrant-docker-compose
+    * vagrant-aws `vagrant plugin install vagrant-aws`
+    * vagrant-docker-compose `vagrant plugin install vagrant-docker-compose`
 * [NPM](https://docs.npmjs.com/getting-started/installing-node)
+
+Run the following command from your terminal:
+
+    curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash
+
+Make sure your aws is configured (https://docs.aws.amazon.com/cli/latest/userguide/cli-command-line.html):
+
+    aws configure
 
 # Scripts:
 
@@ -120,3 +125,7 @@ Signature Algorithm must be *ecdsa-with-SHA1*
   > You need a key pair which will be used to connect to the aws instances. This key
     pair consists of a public key (that is on aws), a private key (that is on your local machine) and a
     key pair name used to refer to that key when creating the instances
+    
+# Roadmap
+* Install dependencies automatically
+* trigger aws configure automatically
