@@ -10,6 +10,7 @@ import sys
 import json
 import subprocess
 import re
+from multiprocessing.pool import ThreadPool
 
 DEBUG = False
 GOPATH = os.environ['GOPATH']
@@ -91,35 +92,31 @@ def source_peer(peer):
     """Sets environment variables for that peer"""
     return "source /etc/hyperledger/crypto-config/tools/set_env." + peer+".sh"
 
-def instantiate_chaincode(peer):
+def instantiate_chaincode(data):
     """Instantiates chaincode on one of the peers"""
-    if not is_installed_or_instantiated(peer, installed=False):
-        upgrade = is_installed_or_instantiated(peer, installed=False, ignore_version=True)
-        if upgrade:
-            print "==> Upgrading " + info + " on " + peer + "..."
-        else:
-            print "==> Instantiating " + info + " on " + peer + "..."
+    if not is_installed_or_instantiated(data['peer'], installed=False):
+        upgrade = is_installed_or_instantiated(data['peer'], installed=False, ignore_version=True)
 
-        call(source_peer(peer), "&&", "peer chaincode",
-             "--cafile", orderer_ca,
-             "--orderer", orderer_host_port,
+        call(source_peer(data['peer']), "&&", "peer chaincode",
+             "--cafile", data['orderer_ca'],
+             "--orderer", data['orderer_host_port'],
              "--logging-level", "debug",
              ("upgrade" if upgrade else "instantiate"),
-             "--name", chaincode_name,
-             "--version", chaincode_version,
-             "--ctor", """\"{\\\"Args\\\":[\\\"Init\\\""""+instantiate_args+"""]}\"""",
-             "--channelID", channel_id,
+             "--name", data['chaincode_name'],
+             "--version", data['chaincode_version'],
+             "--ctor", """\"{\\\"Args\\\":[\\\"Init\\\""""+data['instantiate_args']+"""]}\"""",
+             "--channelID", data['channel_id'],
              # "--policy", '\"' + chaincode_policy + '\"', TODO
              "--tls true",
-             "--lang", chaincode_language
+             "--lang", data['chaincode_language']
             )
 
         if upgrade:
-            print "Done. Upgraded " + info + " on " + peer + "!"
+            return "Done. Upgraded " + data['info'] + " on " + data['peer'] + "!"
         else:
-            print "Done. Instantiated " + info + " on " + peer + "!"
+            return "Done. Instantiated " + data['info'] + " on " + data['peer'] + "!"
     else:
-        print "==> " + info + " is already instantiated on " + peer + "!"
+        return "==> " + data['info'] + " is already instantiated on " + data['peer'] + "!"
 
 def format_args(args):
     """Formats the args with escaped " """
@@ -134,6 +131,7 @@ subprocess.call("npm run build --prefix " + GOPATH + "/src", shell=True)
 
 with open(CONF_FILE) as chaincodes_stream:
     try:
+        instantiate_data = []
         for chaincode_path in json.load(chaincodes_stream):
             absolute_chaincode_path = GOPATH + "/src/build/" + chaincode_path
             with open(absolute_chaincode_path + "/package.json") as stream:
@@ -170,11 +168,28 @@ with open(CONF_FILE) as chaincodes_stream:
                             must_compile = install_chaincode(the_peer, must_compile, chaincode_language)
 
                         # Instantiate chaincode on one (the last) of the peers
-                        instantiate_chaincode(net_config["peers"][0])
+                        peer = net_config["peers"][0]
+                        data = {
+                            'peer': peer,
+                            'info': info,
+                            'orderer_ca': orderer_ca,
+                            'orderer_host_port': orderer_host_port,
+                            'chaincode_name': chaincode_name,
+                            'chaincode_version': chaincode_version,
+                            'instantiate_args': instantiate_args,
+                            'channel_id': channel_id,
+                            'chaincode_language': chaincode_language
+                        }
+
+                        instantiate_data.append(data)
                     print ""
 
                 except ValueError as exc:
                     print exc
+
+        results = ThreadPool(10).imap_unordered(instantiate_chaincode, instantiate_data)
+        for i, result in enumerate(results, 1):
+            print result
 
     except ValueError as exc:
         print exc
