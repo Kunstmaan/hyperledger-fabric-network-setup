@@ -5,18 +5,17 @@ Install the dependencies:
 * [Python](https://www.python.org/downloads/) modules:
     * [pyaml](https://github.com/yaml/pyyaml)
 * [Vagrant](https://www.vagrantup.com/docs/installation/) plugins (for running the network on AWS):
-    * vagrant-aws (vagrant plugin install vagrant-aws)
-    
-    * vagrant-docker-compose (vagrant plugin install vagrant-docker-compose)
+    * vagrant-aws
+    * vagrant-docker-compose
 * [NPM](https://docs.npmjs.com/getting-started/installing-node)
+* [aws](https://aws.amazon.com/cli/) command line with the region and keys configured (run `aws configure`)
+* Environment variables
+   * AWS_SECRET_ACCESS_KEY=<your aws secret key>
+   * AWS_ACCESS_KEY_ID=<your aws access key id>
 
 Run the following command from your terminal:
 
     curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftrpPnOOgxoe_gWe5iWjArIgqmiLDks5aXIuewA%3D%3D | bash
-
-Make sure your aws is configured (https://docs.aws.amazon.com/cli/latest/userguide/cli-command-line.html):
-
-    aws configure
 
 # Scripts:
 
