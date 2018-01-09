@@ -6,7 +6,8 @@ Install the dependencies:
     * [pyaml](https://github.com/yaml/pyyaml)
 * [Vagrant](https://www.vagrantup.com/docs/installation/) plugins (for running the network on AWS):
     * vagrant-aws (vagrant plugin install vagrant-aws)
-    * vagrant-docker-compose (vagrant plugin install vagrant-docker-compose)
+    
+    * vagrant-docker-compose (vagrant plugin install vagrant-docker-compose)
 * [NPM](https://docs.npmjs.com/getting-started/installing-node)
 
 Run the following command from your terminal:
