@@ -9,7 +9,6 @@
     structure created by cryptogen.py
 
     Creates clean_hosts.sh, set_hosts_public.sh, set_hosts_private.sh
-    and update_remote_apps.sh
 
     These scripts allow you to modify /etc/hosts file to resolve
     the names of your network to IP addresses running on Amazon
@@ -105,23 +104,6 @@ SCRIPT_CLEANER = open(SCRIPT_CLEANER_FN, "w")
 SCRIPT_CLEANER.write(PREAMBLE)
 SCRIPT_CLEANER.write("# This script removes automatically generated entries from the /etc/hosts file\n\n")
 
-SCRIPT_APPS_FN = GEN_PATH + "/scripts/update_remote_apps.sh"
-SCRIPT_APPS = open(SCRIPT_APPS_FN, "w")
-SCRIPT_APPS.write(PREAMBLE)
-SCRIPT_APPS.write("# This script automatically updates the apps on the AWS network,\n")
-SCRIPT_APPS.write("# by calling apps/install_app.sh with the app's name as parameted\n")
-SCRIPT_APPS.write("# Should be called from local computer (not from within the network)\n\n")
-SCRIPT_APPS.write("""set -eu -o pipefail
-
-echo "Modifying /etc/hosts..."
-INSTALL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$INSTALL_DIR/set_hosts_public.sh
-echo "If the process hangs here, exit this shell and try again. (reloads /etc/hosts)"
-
-""")
-
-
-
 for instance in AWS_CONF["ec2s"]:
     instance_name = "Hyperledger_"+instance
     instance_id = "$(cat {0}/machines/".format(VAGRANT_FOLDER) + instance_name + "/aws/id)"
@@ -152,13 +134,6 @@ for instance in AWS_CONF["ec2s"]:
         SCRIPT_CLEANER.write(remove_line)
         SCRIPT_CLEANER.write("\n")
 
-    for app in AWS_CONF["ec2s"][instance]["apps"]:
-        hostname = docker_name = get_container_name(AWS_CONF["ec2s"][instance]["fabric"][0]["docker"])
-        user = AWS_CONF["ssh_username"]
-        ssh_key = AWS_CONF["private_key_path"]
-        SCRIPT_APPS.write("echo \"Updating "+app+" app...\"\n")
-        SCRIPT_APPS.write("ssh -i "+ssh_key+" -t "+user+"@"+hostname+" /vagrant/apps/install_app.sh "+app+"\n\n")
-
 if DO_PUBLIC:
     call("chmod +x", SCRIPT_OUT_PUBLIC_FN)
     SCRIPT_OUT_PUBLIC.close()
@@ -167,5 +142,3 @@ call("chmod +x", SCRIPT_OUT_PRIVATE_FN)
 SCRIPT_OUT_PRIVATE.close()
 call("chmod +x", SCRIPT_CLEANER_FN)
 SCRIPT_CLEANER.close()
-call("chmod +x", SCRIPT_APPS_FN)
-SCRIPT_APPS.close()
