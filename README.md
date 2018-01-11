@@ -129,3 +129,4 @@ Signature Algorithm must be *ecdsa-with-SHA1*
 # Roadmap
 * Install dependencies automatically
 * trigger aws configure automatically
+* make BatchSize, BatchTimeout, ... more configurable
