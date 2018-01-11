@@ -185,8 +185,8 @@ def add_peer_to_explorer(org, peer, is_dev = False):
             requestsPort = '7051'
             eventsPort = '7051'
         explorer['network-config'][org_nb][peer_nb] = {
-            'requests': 'grpcs://{0}:{1}'.format(peerDomain, requestsPort),
-            'events': 'grpcs://{0}:{1}'.format(peerDomain, eventsPort),
+            'requests': 'grpc{2}://{0}:{1}'.format(peerDomain, requestsPort, ('' if is_dev else 's')),
+            'events': 'grpc{2}://{0}:{1}'.format(peerDomain, eventsPort, ('' if is_dev else 's')),
             'server-hostname': peerDomain,
             'tls_cacerts': cacert
         }
@@ -401,7 +401,6 @@ with open(YAML_CONFIG, 'r') as stream:
                     )
                 create_combined_ca(init_ca["ca"], is_tls=True)
 
-        ORG_MAP['channel'] = CONF['Channels'][0]['Name']
         for theOrg in CONF["Orgs"]:
             if 'peers' in theOrg and theOrg['peers']:
                 ORG_MAP['currentId'] += 1
@@ -414,21 +413,23 @@ with open(YAML_CONFIG, 'r') as stream:
                 EXPLORER_DATA_PROD['network-config'][get_org_nb(theOrg)] = {}
             create_all_msp(theOrg)
 
+        if ORG_MSP_CHANGED:
+            print 'Generating channel artifacts...'
+            call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG)
+            call('mkdir -p', GEN_PATH + '/scripts')
+            with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
+                EXPLORER_DATA_PROD['channel'] = CONF['Channels'][0]['Name']
+                stream.write(json.dumps(EXPLORER_DATA_PROD,sort_keys=True,indent=2))
+            with open(GEN_PATH + '/scripts/explorer-config.dev.json', 'w+') as stream:
+                dev_org = CONF['Devmode']
+                EXPLORER_DATA_DEV['channel'] = CONF['Channels'][0]['Name']
+                EXPLORER_DATA_DEV['network-config']['org1'] = {}
+                add_admin_to_explorer(dev_org, dev_org['admins'][0], True)
+                add_peer_to_explorer(dev_org, dev_org['peers'][0], True)
+
+                stream.write(json.dumps(EXPLORER_DATA_DEV,sort_keys=True,indent=2))
+        else:
+            print "Organisation MSP did not change, not regenerating channel artifacts"
+
     except yaml.YAMLError as exc:
         print exc
-
-if ORG_MSP_CHANGED:
-    print 'Generating channel artifacts...'
-    call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG)
-    call('mkdir -p', GEN_PATH + '/scripts')
-    with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
-        stream.write(json.dumps(EXPLORER_DATA_PROD,sort_keys=True,indent=2))
-    with open(GEN_PATH + '/scripts/explorer-config.dev.json', 'w+') as stream:
-        dev_org = CONF['Devmode']
-        EXPLORER_DATA_DEV['network-config']['org1'] = {}
-        add_admin_to_explorer(dev_org, dev_org['admins'][0], True)
-        add_peer_to_explorer(dev_org, dev_org['peers'][0], True)
-
-        stream.write(json.dumps(EXPLORER_DATA_DEV,sort_keys=True,indent=2))
-else:
-    print "Organisation MSP did not change, not regenerating channel artifacts"
