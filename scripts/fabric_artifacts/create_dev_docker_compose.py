@@ -124,6 +124,11 @@ services:
     # for example map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "5984:5984"
+      
+networks:
+  default:
+    external:
+      name: hyperledgerNet
 """.format(
     ORG.replace('.', '-') + '-MSP',
     ORG,

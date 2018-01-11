@@ -18,6 +18,7 @@ It will also generate channel artifacts if the organisation MSP changed
 import os
 import sys
 import yaml
+import json
 
 DEBUG = False
 # Takes cryptoconfig.yaml as first argument
@@ -38,6 +39,60 @@ if len(sys.argv) != 3:
     fail("Usage: cryptogen config.yaml override")
 YAML_CONFIG = sys.argv[1]
 OVERRIDE = sys.argv[2] == 'True'
+
+EXPLORER_DATA_PROD = {
+    "network-config": {
+
+    },
+    "host": "localhost",
+    "port": "8080",
+    "GOPATH": "../artifacts",
+    "keyValueStore": "/tmp/fabric-client-kvs",
+    "eventWaitTime": "30000",
+    "mysql": {
+        "host": "mysql",
+        "port": "3306",
+        "database": "fabricexplorer",
+        "username": "root",
+        "passwd": "password"
+    }
+}
+
+EXPLORER_DATA_DEV = {
+    "network-config": {
+
+    },
+    "host": "localhost",
+    "port": "8080",
+    "GOPATH": "../artifacts",
+    "keyValueStore": "/tmp/fabric-client-kvs",
+    "eventWaitTime": "30000",
+    "mysql": {
+        "host": "mysql",
+        "port": "3306",
+        "database": "fabricexplorer",
+        "username": "root",
+        "passwd": "password"
+    }
+}
+
+# ORG_MAP = {
+#     'currentId': 1
+#     'grb.vlaanderen.be': {
+#         'id': 1
+#         'peers': {
+#             'currentId': 1
+#             'peer1.vlaanderen.be': {
+#                 'id': 1
+#             }
+#         }
+#     }
+# }
+
+# used for fabric-explorer
+ORG_MAP = {
+    'currentId': 0
+}
 
 def call(script, *args):
     """Calls the given script using the args"""
@@ -78,6 +133,63 @@ def create_peer_docker(peer, org):
         org["admins"][0]["Hostname"],
         CRYPTO_CONFIG_PATH + org["Domain"]
     )
+
+def get_org_nb(org):
+    global ORG_MAP
+    return 'org'+str(ORG_MAP[org['Domain']]['id'])
+
+def add_admin_to_explorer(org, admin, is_dev = False):
+    """Adds an admin to this organisation, for fabric-explorer"""
+    if 'peers' in org and org['peers']>0:
+        org_nb = get_org_nb(org)
+        global EXPLORER_DATA_PROD
+        global EXPLORER_DATA_DEV
+
+        explorer = EXPLORER_DATA_DEV if is_dev else EXPLORER_DATA_PROD
+        if(is_dev):
+            org_nb = 'org1'
+
+        if 'admin' not in explorer['network-config'][org_nb]:
+            base = '/crypto-config/{0}/users/{1}.{0}/msp/'.format(org['Domain'], admin['Hostname'])
+            explorer['network-config'][org_nb]['admin'] = {
+                'key': base+'keystore',
+                'cert': base+'signcerts'
+            }
+            explorer['network-config'][org_nb]['name'] = org['Domain']
+            explorer['network-config'][org_nb]['mspid'] = org['Domain'].replace('.', '-') + '-MSP'
+
+def add_peer_to_explorer(org, peer, is_dev = False):
+    # Also add this to the explorer data
+    if 'peers' in org and org['peers']>0:
+        global ORG_MAP
+        global EXPLORER_DATA_PROD
+        global EXPLORER_DATA_DEV
+
+        explorer = EXPLORER_DATA_DEV if is_dev else EXPLORER_DATA_PROD
+
+        peerData = ORG_MAP[org['Domain']]['peers']
+        peerData['currentId'] += 1
+        peerDomain = peer['Hostname'] + '.' + org['Domain']
+        peerData[peerDomain] = {
+            'id': peerData['currentId']
+        }
+        org_nb = get_org_nb(org)
+        peer_nb = 'peer' + str(peerData['currentId'])
+        requestsPort = peer['Ports'][0].split(':')[0]
+        eventsPort = peer['Ports'][1].split(':')[0]
+        cacert = '/crypto-config/{0}/peers/{1}/tlsca.combined.{1}-cert.pem'.format(org['Domain'], peerDomain)
+        if is_dev:
+            org_nb = 'org1'
+            peer_nb = 'peer1'
+            peerDomain = 'peer'
+            requestsPort = '7051'
+            eventsPort = '7051'
+        explorer['network-config'][org_nb][peer_nb] = {
+            'requests': 'grpcs://{0}:{1}'.format(peerDomain, requestsPort),
+            'events': 'grpcs://{0}:{1}'.format(peerDomain, eventsPort),
+            'server-hostname': peerDomain,
+            'tls_cacerts': cacert
+        }
 
 def create_orderer_docker(orderer, org):
     """Creates a docker compose file for this orderer"""
@@ -167,7 +279,6 @@ def copy_admincerts_to_admins(org):
 
 def create_all_msp(org):
     """Creates all msps for the org"""
-
     create_ca(org["ca"], is_tls=False, can_sign=True)
     create_ca(org["tlsca"], is_tls=True, can_sign=True)
 
@@ -186,6 +297,9 @@ def create_all_msp(org):
                 if role == "admins":
                     subfolder = "users"
                     is_admin = True
+                    add_admin_to_explorer(org, element)
+                elif role == "peers":
+                    add_peer_to_explorer(org, element)
                 elif role == "users" and "Attributes" in element and element['Attributes']:
                     attr_values = ["\\\""+k+"\\\":"+"\\\""+str(v)+"\\\"" for k, v in element["Attributes"].iteritems()]
                     attributes = ",".join(attr_values)
@@ -287,14 +401,34 @@ with open(YAML_CONFIG, 'r') as stream:
                     )
                 create_combined_ca(init_ca["ca"], is_tls=True)
 
+        ORG_MAP['channel'] = CONF['Channels'][0]['Name']
         for theOrg in CONF["Orgs"]:
+            if 'peers' in theOrg and theOrg['peers']:
+                ORG_MAP['currentId'] += 1
+                ORG_MAP[theOrg["Domain"]] = {
+                    'id': ORG_MAP['currentId'],
+                    'peers': {
+                        'currentId': 0
+                    }
+                }
+                EXPLORER_DATA_PROD['network-config'][get_org_nb(theOrg)] = {}
             create_all_msp(theOrg)
 
     except yaml.YAMLError as exc:
         print exc
 
 if ORG_MSP_CHANGED:
-    print "Generating channel artifacts..."
+    print 'Generating channel artifacts...'
     call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG)
+    call('mkdir -p', GEN_PATH + '/scripts')
+    with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
+        stream.write(json.dumps(EXPLORER_DATA_PROD,sort_keys=True,indent=2))
+    with open(GEN_PATH + '/scripts/explorer-config.dev.json', 'w+') as stream:
+        dev_org = CONF['Devmode']
+        EXPLORER_DATA_DEV['network-config']['org1'] = {}
+        add_admin_to_explorer(dev_org, dev_org['admins'][0], True)
+        add_peer_to_explorer(dev_org, dev_org['peers'][0], True)
+
+        stream.write(json.dumps(EXPLORER_DATA_DEV,sort_keys=True,indent=2))
 else:
     print "Organisation MSP did not change, not regenerating channel artifacts"
