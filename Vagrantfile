@@ -142,6 +142,7 @@ def configure_instance(aws_node, private_ip_address, node_name, node_config)
 
     if node_config.key?('memory_size')
       # Size in GB
+      # (untested)
       ec2.block_device_mapping = [{ 'DeviceName' => '/dev/xvda1', 'Ebs.VolumeSize' => node_config['memory_size'] }]
     end
 
