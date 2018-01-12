@@ -4,6 +4,7 @@
 
 import os
 import sys
+from argparse import ArgumentParser
 import yaml
 
 # Note: configtxgen requires certificates to have the subjectKeyIdentifier extension
@@ -29,10 +30,14 @@ def fail(msg):
     sys.stderr.write(msg)
     exit(1)
 
-# Parse args
-if len(sys.argv) != 2:
-    fail("Usage: gen_configtx config.yaml")
-YAML_CONFIG = sys.argv[1]
+
+PARSER = ArgumentParser(description='Creates the channel artifacts and the channel creation/joining scripts')
+PARSER.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
+PARSER.add_argument('--configtxBase', help='path to configtx hyperledger fabric config file, without the organisations and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
+
+args = PARSER.parse_args()
+
+YAML_CONFIG = args.crypto_config
 
 def call(script, *args):
     """Calls the given script using the args"""
@@ -46,6 +51,10 @@ def call(script, *args):
 def to_pwd(script):
     """Converts the script path to the correct path"""
     return PWD + "/" + script
+
+CONFIGTX_BASE = to_pwd("configtxBase.yaml")
+if args.configtxBase:
+    CONFIGTX_BASE = args.configtxBase
 
 def add_org(org_conf):
     """Returns the org config for configtx"""
@@ -315,7 +324,7 @@ exit 0
 
 call("mkdir -p", GEN_PATH + "/channel")
 call("mkdir -p", GEN_PATH + "/devmode")
-call("cp", to_pwd("configtxBase.yaml"), CONFIGTX_FILENAME)
+call("cp", CONFIGTX_BASE, CONFIGTX_FILENAME)
 
 ARTIFACT_SCRIPT_PREAMBLE = """#!/bin/bash
 # This file is auto-generated
@@ -332,6 +341,19 @@ PREFIX="."
 
 """
 
+CONFIGTX_PREAMBLE = """
+
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+"""
+
 
 with open(YAML_CONFIG, 'r') as stream:
     with open(CONFIGTX_FILENAME, 'a') as configtx:
@@ -345,6 +367,7 @@ with open(YAML_CONFIG, 'r') as stream:
                             devmode_artifact_script.write(DEVMODE_ARTIFACT_SCRIPT_PREAMBLE)
                             devmode_channel_script.write(DEVMODE_CHANNEL_SCRIPT_PREAMBLE)
 
+                            configtx.write(CONFIGTX_PREAMBLE)
                             for theOrg in CONF["Orgs"]:
                                 configtx.write(add_org(theOrg))
 

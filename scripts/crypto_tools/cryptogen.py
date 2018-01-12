@@ -17,8 +17,9 @@ It will also generate channel artifacts if the organisation MSP changed
 
 import os
 import sys
-import yaml
 import json
+from argparse import ArgumentParser
+import yaml
 
 DEBUG = False
 # Takes cryptoconfig.yaml as first argument
@@ -34,11 +35,15 @@ def fail(msg):
     sys.stderr.write('\033[91m' + msg + '\033[0m\n')
     exit(1)
 
-# Parse args
-if len(sys.argv) != 3:
-    fail("Usage: cryptogen config.yaml override")
-YAML_CONFIG = sys.argv[1]
-OVERRIDE = sys.argv[2] == 'True'
+PARSER = ArgumentParser(description='Creates the channel artifacts and the channel creation/joining scripts')
+PARSER.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
+PARSER.add_argument('--configtxBase', help='path to configtx hyperledger fabric config file, without the organisations and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
+PARSER.add_argument('--noOverride', help='Do not override existing files (default: false). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
+
+args = PARSER.parse_args()
+YAML_CONFIG = args.crypto_config
+OVERRIDE = not args.noOverride
+CONFIGTX_BASE = "--configtxBase {0}".format(args.configtxBase) if args.configtxBase else ""
 
 EXPLORER_DATA_PROD = {
     "network-config": {
@@ -415,7 +420,8 @@ with open(YAML_CONFIG, 'r') as stream:
 
         if ORG_MSP_CHANGED:
             print 'Generating channel artifacts...'
-            call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG)
+
+            call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG, CONFIGTX_BASE)
             call('mkdir -p', GEN_PATH + '/scripts')
             with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
                 EXPLORER_DATA_PROD['channel'] = CONF['Channels'][0]['Name']
