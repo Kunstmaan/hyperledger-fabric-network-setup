@@ -48,12 +48,22 @@ def gen_cryptographic_material(parsed_args):
     crypto_config = parsed_args.crypto_config
     gen_path = os.path.abspath(parsed_args.gen_path)
     install_fabric_tools()
-    if not parsed_args.noOverride:
+
+    configtxbase = parsed_args.configtxBase
+    no_override = parsed_args.noOverride
+    if configtxbase:
+        configtxbase = '--configtxBase {0}'.format(configtxbase)
+    else:
+        configtxbase = ''
+    if not no_override:
         print "Cleaning pre-existing generated files..."
         call('rm -rfd {0}'.format(gen_path))
         call('mkdir -p {0}'.format(gen_path))
+        no_override = ''
+    else:
+        no_override = '--noOverride'
     print "Generating cryptographic material..."
-    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('crypto_tools/cryptogen.py'), crypto_config, str(not parsed_args.noOverride))
+    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('crypto_tools/cryptogen.py'), crypto_config, no_override, configtxbase)
     # This also generates the channel artifacts, if changes were made.
     print "Done"
 
@@ -61,9 +71,17 @@ def gen_channel_artifacts(parsed_args):
     """Forces generation of channel artifacts"""
     crypto_config = parsed_args.crypto_config
     gen_path = os.path.abspath(parsed_args.gen_path)
+    configtxbase = parsed_args.configtxBase
+    if configtxbase:
+        configtxbase = '--configtxBase {0}'.format(configtxbase)
+    else:
+        configtxbase = ''
+
+    print 'USING configtx: '+configtxbase
+
     install_fabric_tools()
     print "Generating channel artifacts..."
-    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('fabric_artifacts/gen_configtx.py'), crypto_config)
+    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('fabric_artifacts/gen_configtx.py'), crypto_config, configtxbase)
     print "Done"
 
 
@@ -129,6 +147,7 @@ PARSER_GEN.add_argument('crypto_config', type=str, help='cryptographic configura
 PARSER_GEN.add_argument('gen_path', nargs='?', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
 PARSER_GEN.add_argument('--noOverride', help='Do not override existing files (default: false). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
 PARSER_GEN.add_argument('--onlyChannelArtifacts', help='Only generate hyperledger fabric channel artifacts. Will not generate the certificate structure, assumes this exists already.  Only use this if you made manual changes to the generated folder, which requires new channel artifacts to be generated.', action='store_true')
+PARSER_GEN.add_argument('--configtxBase', help='path to configtx hyperledger fabric config file, without the organisations  and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
 PARSER_GEN.set_defaults(func=gen_cryptographic_material)
 
 #######################################
