@@ -46,7 +46,7 @@ def gen_cryptographic_material(parsed_args):
         gen_channel_artifacts(parsed_args)
         exit(0)
     crypto_config = parsed_args.crypto_config
-    gen_path = os.path.abspath(parsed_args.gen_path)
+    gen_path = os.path.abspath(parsed_args.genPath)
     install_fabric_tools()
 
     configtxbase = parsed_args.configtxBase
@@ -70,7 +70,7 @@ def gen_cryptographic_material(parsed_args):
 def gen_channel_artifacts(parsed_args):
     """Forces generation of channel artifacts"""
     crypto_config = parsed_args.crypto_config
-    gen_path = os.path.abspath(parsed_args.gen_path)
+    gen_path = os.path.abspath(parsed_args.genPath)
     configtxbase = parsed_args.configtxBase
     if configtxbase:
         configtxbase = '--configtxBase {0}'.format(configtxbase)
@@ -87,7 +87,7 @@ def gen_channel_artifacts(parsed_args):
 
 def network_down(parsed_args):
     aws_config = os.path.abspath(parsed_args.aws_config)
-    gen_path = os.path.abspath(parsed_args.gen_path)
+    gen_path = os.path.abspath(parsed_args.genPath)
     print 'May ask sudo password at this point to clean /etc/hosts file of previously created entries. If you never brought the network up, this won\'t make any changes'
     clean_hosts = gen_path + '/scripts/clean_hosts.sh'
     if os.path.isfile(clean_hosts):
@@ -97,7 +97,7 @@ def network_down(parsed_args):
 def network_up(parsed_args):
     crypto_config = os.path.abspath(parsed_args.crypto_config)
     aws_config = os.path.abspath(parsed_args.aws_config)
-    gen_path = os.path.abspath(parsed_args.gen_path)
+    gen_path = os.path.abspath(parsed_args.genPath)
     print 'May ask sudo password at this point to edit /etc/hosts file with the names of the nodes, to be able to resolve them to public ips.'
     call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('get_hosts_scripts.py'), aws_config, 'False') # To get the private ips
     call('export AWS_CONFIG={0} && export GEN_PATH={1} && pushd {2} && vagrant up && popd'.format(aws_config, gen_path, PWD))
@@ -109,7 +109,7 @@ def network_up(parsed_args):
 
 
 def update_chaincodes(parsed_args):
-    gen_path = os.path.abspath(parsed_args.gen_path)
+    gen_path = os.path.abspath(parsed_args.genPath)
 
     call(gen_path + '/scripts/update_remote_chaincodes.sh')
 
@@ -144,10 +144,10 @@ PARSER_BOOTSTRAP.set_defaults(func=bootstrap)
 PARSER_GEN = SUBPARSERS.add_parser('generate', help="""generate certificate structure, initial channel blocks,
 hyperledger fabric artifacts and docker configurations.""")
 PARSER_GEN.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
-PARSER_GEN.add_argument('gen_path', nargs='?', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
+PARSER_GEN.add_argument('--genPath', '-g', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
 PARSER_GEN.add_argument('--noOverride', help='Do not override existing files (default: override files). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
 PARSER_GEN.add_argument('--onlyChannelArtifacts', help='Only generate hyperledger fabric channel artifacts. Will not generate the certificate structure, assumes this exists already.  Only use this if you made manual changes to the generated folder, which requires new channel artifacts to be generated.', action='store_true')
-PARSER_GEN.add_argument('--configtxBase', help='path to configtx hyperledger fabric config file, without the organisations  and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
+PARSER_GEN.add_argument('--configtxBase', '-c', help='path to configtx hyperledger fabric config file, without the organisations  and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
 PARSER_GEN.set_defaults(func=gen_cryptographic_material)
 
 #######################################
@@ -161,7 +161,7 @@ PARSER_UP = SUBPARSERS.add_parser('network-up', help="""Bring the network up. Re
          * installs first version of chaincode""")
 PARSER_UP.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file.')
 PARSER_UP.add_argument('aws_config', type=str, help='AWS network configuration, as JSON file.')
-PARSER_UP.add_argument('gen_path', nargs='?', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
+PARSER_UP.add_argument('--genPath', '-g', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
 PARSER_UP.set_defaults(func=network_up)
 
 #######################################
@@ -172,14 +172,14 @@ PARSER_DOWN = SUBPARSERS.add_parser('network-down', help="""Bring the network do
          * vagrant destroy -f
          * cleans /etc/hosts""")
 PARSER_DOWN.add_argument('aws_config', type=str, help='AWS network configuration, as JSON file.')
-PARSER_DOWN.add_argument('gen_path', nargs='?', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
+PARSER_DOWN.add_argument('--genPath', '-g', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
 PARSER_DOWN.set_defaults(func=network_down)
 
 #######################################
 #          UPDATE-CHAINCODES
 #######################################
 PARSER_UPDATE_CHAINCODES = SUBPARSERS.add_parser('update-chaincodes', help='Updates chaincodes on the network. Only run this if the network is up')
-PARSER_UPDATE_CHAINCODES.add_argument('gen_path', nargs='?', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
+PARSER_UPDATE_CHAINCODES.add_argument('--genPath', '-g', type=str, help='Where the generated files are (default: ./generated)', default='./generated')
 PARSER_UPDATE_CHAINCODES.set_defaults(func=update_chaincodes)
 
 #######################################
