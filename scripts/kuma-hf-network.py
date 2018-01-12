@@ -145,7 +145,7 @@ PARSER_GEN = SUBPARSERS.add_parser('generate', help="""generate certificate stru
 hyperledger fabric artifacts and docker configurations.""")
 PARSER_GEN.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
 PARSER_GEN.add_argument('gen_path', nargs='?', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
-PARSER_GEN.add_argument('--noOverride', help='Do not override existing files (default: false). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
+PARSER_GEN.add_argument('--noOverride', help='Do not override existing files (default: override files). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
 PARSER_GEN.add_argument('--onlyChannelArtifacts', help='Only generate hyperledger fabric channel artifacts. Will not generate the certificate structure, assumes this exists already.  Only use this if you made manual changes to the generated folder, which requires new channel artifacts to be generated.', action='store_true')
 PARSER_GEN.add_argument('--configtxBase', help='path to configtx hyperledger fabric config file, without the organisations  and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
 PARSER_GEN.set_defaults(func=gen_cryptographic_material)
