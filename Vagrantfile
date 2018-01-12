@@ -149,10 +149,10 @@ def configure_instance(aws_node, private_ip_address, node_name, node_config)
 
     # Collect tags (can't be longer than 250 chars)
     ec2.tags = ({})
-    ec2.tags['Name'] = node_name
+    ec2.tags['Name'] = node_name.truncate(245)
     ec2.tags['Type'] = 'Hyperledger'
     ec2.tags['Version'] = VERSION
-    ec2.tags['Fabric'] = node_config['fabric'].map { |f| f['role'] }
+    ec2.tags['Fabric'] = node_config['fabric'].map { |f| f['role'] }.join(',').truncate(245, separator: ',')
   end
 end
 
