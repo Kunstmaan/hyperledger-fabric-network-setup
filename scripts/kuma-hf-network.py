@@ -14,7 +14,7 @@ from argparse import RawTextHelpFormatter
 from argparse import Namespace
 
 
-install_script = "https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftozVgLy29XPcsF_g0FnmiJb5wWkuks5aXIhFwA%3D%3D"
+install_script = "https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftlJwD7jEr7kZph_QEsqncTTeroBFks5aZc1pwA%3D%3D"
 DEBUG = False
 PWD = os.path.dirname(os.path.realpath(__file__))
 
