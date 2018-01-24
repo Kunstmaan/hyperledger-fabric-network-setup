@@ -32,6 +32,11 @@ services:
     ports:
       - $PORT:7054
     command:      sh -c 'fabric-ca-server start -b admin:adminpw -d'
+	logging:
+		driver: \"json-file\"
+		options:
+			max-size: \"200k\"
+			max-file: \"10\"
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_TLS_ENABLED=true

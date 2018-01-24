@@ -35,6 +35,11 @@ services:
     container_name: $CN.$ORG
     working_dir:  /opt/gopath/src/github.com/hyperledger/fabric/peer
     command:      peer node start
+    logging:
+        driver: \"json-file\"
+        options:
+            max-size: \"200k\"
+            max-file: \"10\"
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same

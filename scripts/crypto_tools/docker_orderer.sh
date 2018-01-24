@@ -42,6 +42,11 @@ services:
       - $Port:7050
     working_dir:  /opt/gopath/src/github.com/hyperledger/fabric/orderers
     command:      orderer
+	logging:
+		driver: \"json-file\"
+		options:
+			max-size: \"200k\"
+			max-file: \"10\"
     environment:
         - ORDERER_GENERAL_LOGLEVEL=debug
         - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0

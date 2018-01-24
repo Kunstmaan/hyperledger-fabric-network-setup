@@ -31,6 +31,11 @@ services:
     tty:          true
     working_dir:  /etc/hyperledger
     container_name: tools.$ORG
+    logging:
+        driver: \"json-file\"
+        options:
+            max-size: \"200k\"
+            max-file: \"10\"
     environment:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=hyperledgerNet
       - GOPATH=/opt/gopath
