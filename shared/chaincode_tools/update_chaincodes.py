@@ -171,7 +171,7 @@ with open(CONF_FILE) as chaincodes_stream:
                         orderer_host = net_config["orderer"]["host"]
                         orderer_port = str(net_config["orderer"]["port"])
                         orderer_host_port = orderer_host + ":" + orderer_port
-                        orderer_org = ".".join(orderer_host.split(".")[-2:])
+                        orderer_org = net_config["orderer"]["org"]
                         orderer_ca = "/etc/hyperledger/crypto-config/" + orderer_org + "/orderers/" + orderer_host + "/tlsca.combined." + orderer_host + "-cert.pem"
 
                         the_data = {}
