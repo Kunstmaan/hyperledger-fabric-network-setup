@@ -5,14 +5,14 @@ set -eu -o pipefail
 
 if [ $# -ne 5 ];
 then
-	echo ""
-	echo "Usage: "
-	echo "	docker_orderer COMMON_NAME ORGANISATION PEERS ORGS PORT"
-  	echo "  PEERS and ORGS are comma separated"
-	echo "  This script creates a docker file to be able to run a hyperledger"
-	echo "  fabric orderer"
-	echo ""
-	exit 1
+  echo ""
+  echo "Usage: "
+  echo "  docker_orderer COMMON_NAME ORGANISATION PEERS ORGS PORT"
+    echo "  PEERS and ORGS are comma separated"
+  echo "  This script creates a docker file to be able to run a hyperledger"
+  echo "  fabric orderer"
+  echo ""
+  exit 1
 fi
 
 CN=$1
@@ -42,11 +42,11 @@ services:
       - $Port:7050
     working_dir:  /opt/gopath/src/github.com/hyperledger/fabric/orderers
     command:      orderer
-	logging:
-		driver: \"json-file\"
-		options:
-			max-size: \"200k\"
-			max-file: \"10\"
+    logging:
+      driver: \"json-file\"
+      options:
+        max-size: \"200k\"
+        max-file: \"10\"
     environment:
         - ORDERER_GENERAL_LOGLEVEL=debug
         - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
