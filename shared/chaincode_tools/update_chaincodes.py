@@ -14,11 +14,18 @@ from multiprocessing.pool import ThreadPool
 
 DEBUG = False
 GOPATH = os.environ['GOPATH']
-CONF_FILE = GOPATH + '/src/package.json'
+BASE_CONF_PATH = GOPATH + '/src'
 
 DRYRUN = False # Debug only
 if DRYRUN:
-    CONF_FILE = GOPATH + '/package.json'
+    BASE_CONF_PATH = GOPATH
+
+CONF_FILE = BASE_CONF_PATH + '/chaincodes.json'
+CONF_IS_JSON_PACKAGE = False
+
+if not os.path.isfile(CONF_FILE):
+    CONF_FILE = BASE_CONF_PATH + '/package.json'
+    CONF_IS_JSON_PACKAGE = True
 
 def fail(msg):
     """Prints the error message and exits"""
@@ -140,7 +147,11 @@ with open(CONF_FILE) as chaincodes_stream:
         COMPILE_DATA = []
         INSTALL_DATA = []
         INSTANTIATE_DATA = []
-        for chaincode_path in json.load(chaincodes_stream)["kuma-hf-chaincode-dev"]["chaincodes"]:
+        chaincodes_data = json.load(chaincodes_stream)
+        if CONF_IS_JSON_PACKAGE:
+            chaincodes_data = chaincodes_data["kuma-hf-chaincode-dev"]["chaincodes"]
+            
+        for chaincode_path in chaincodes_data:
             absolute_chaincode_path = GOPATH + "/src/build/" + chaincode_path
             if DRYRUN:
                 absolute_chaincode_path = GOPATH + "/src/chaincodes/" + chaincode_path
