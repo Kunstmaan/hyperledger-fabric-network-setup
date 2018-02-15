@@ -86,7 +86,7 @@ def create_remote_chaincode_script(CONF, AWS, chaincode_remote_script):
             for peer in org['peers']:
                 if 'Tools' in peer:
                     chaincode_remote_script.write("cmd=\"docker exec -it tools.{0} bash -c\"\n".format(org['Domain']))
-                    template = "ssh -oStrictHostKeyChecking=no -i {0} -t {1}@tools.{2} $cmd '\"/etc/hyperledger/chaincode_tools/update_chaincodes.py {3}\"'\n"
+                    template = "ssh -oStrictHostKeyChecking=no -i {0} -t {1}@tools.{2} $cmd '\"/etc/hyperledger/chaincode_tools/update_chaincodes.py --repository {3}\"'\n"
                     chaincode_remote_script.write(template.format(
                         AWS['private_key_path'],
                         AWS['ssh_username'],

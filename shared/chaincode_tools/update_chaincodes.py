@@ -21,11 +21,11 @@ The script looks for a file $GOPATH/src/chaincodes.json which must contain the p
 * For nodejs chaincode only:
     > Compiled Nodejs chaincodes will be in $GOPATH/src/build.
     > If you provide a repository, this will pull from it and save it in $GOPATH/src/, and then run `npm run build`, which must create the $GOPATH/src/build folder, containing chaincodes.
-    > If $GOPATH/src/build/<chaincode_name>/node_modules does not exists, the script will run `npm install` in that chaincode directory, otherwise it will skip `npm install`.
     > If no repository is given, the script will only look in $GOPATH/src/build, making the contents of $GOPATH/src/chaincodes optional.
 """, formatter_class=RawTextHelpFormatter)
 PARSER.add_argument('--dryrun', help='Shows which commands would be run, without running them', action='store_true')
 PARSER.add_argument('--repository', '-r', type=str,help='the repository from which the chaincode should be fetched. If not given, assumes chaincodes are in $GOPATH/src/build/')
+PARSER.add_argument('--forceRebuild', '-f', help='forces the script to run npm install on each chaincode. By default it will only run npm install when the node_modules directory for that chaincode is missing', action='store_true')
 
 args = PARSER.parse_args()
 DRYRUN = args.dryrun
@@ -88,7 +88,7 @@ def compile_chaincode(data):
         call("/etc/hyperledger/chaincode_tools/compile_chaincode.sh", data['chaincode_path'])
         return "==> Compiled " + data['info'] + "!"
     elif data['chaincode_language'] == "node":
-        if not os.path.isdir(data['chaincode_path'] + '/node_modules'):
+        if not os.path.isdir(data['chaincode_path'] + '/node_modules') or args.forceRebuild:
             call("npm", "install", "--prefix", data['chaincode_path'])
         return "==> Installed NPM for " + data['info'] + "!"
 
