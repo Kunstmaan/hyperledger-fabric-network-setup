@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # Created by Guillaume Leurquin, guillaume.leurquin@accenture.com
 """
-This script pulls the latest version of the chaincode, reads $GOPATH/src/config.json,
+This script pulls the latest version of the chaincode, reads $GOPATH/src/chaincodes.json,
 and installs/update all the chaincodes according to the config file
 """
 
@@ -11,20 +11,31 @@ import json
 import subprocess
 import re
 from multiprocessing.pool import ThreadPool
+from argparse import ArgumentParser
+from argparse import RawTextHelpFormatter
 
-DEBUG = False
-GOPATH = os.environ['GOPATH']
-BASE_CONF_PATH = GOPATH + '/src'
+PARSER = ArgumentParser(description="""Instantiates new chaincodes or upgrades existing ones.
+Chaincodes should be in $GOPATH/src/chaincodes (optional for nodejs, see below). Supports nodejs and go chaincodes.
+The script looks for a file $GOPATH/src/chaincodes.json which must contain the paths to the chaincodes, relative to src/chaincodes/
 
-DRYRUN = False # Debug only
-if DRYRUN:
-    BASE_CONF_PATH = GOPATH
+* For nodejs chaincode only:
+    > Compiled Nodejs chaincodes will be in $GOPATH/src/build.
+    > If you provide a repository, this will pull from it and save it in $GOPATH/src/, and then run `npm run build`, which must create the $GOPATH/src/build folder, containing chaincodes.
+    > If $GOPATH/src/build/<chaincode_name>/node_modules does not exists, the script will run `npm install` in that chaincode directory, otherwise it will skip `npm install`.
+    > If no repository is given, the script will only look in $GOPATH/src/build, making the contents of $GOPATH/src/chaincodes optional.
+""", formatter_class=RawTextHelpFormatter)
+PARSER.add_argument('--dryrun', help='Shows which commands would be run, without running them', action='store_true')
+PARSER.add_argument('--repository', '-r', type=str,help='the repository from which the chaincode should be fetched. If not given, assumes chaincodes are in $GOPATH/src/build/')
 
-CONF_FILE = BASE_CONF_PATH + '/chaincodes.json'
+args = PARSER.parse_args()
+DRYRUN = args.dryrun
+
+CHAINCODE_PATH = os.environ['GOPATH'] + '/src'
+CONF_FILE = CHAINCODE_PATH + '/chaincodes.json'
 CONF_IS_JSON_PACKAGE = False
 
 if not os.path.isfile(CONF_FILE):
-    CONF_FILE = BASE_CONF_PATH + '/package.json'
+    CONF_FILE = CHAINCODE_PATH + '/package.json'
     CONF_IS_JSON_PACKAGE = True
 
 def fail(msg):
@@ -32,17 +43,10 @@ def fail(msg):
     sys.stderr.write(msg)
     exit(1)
 
-# Parse args
-if len(sys.argv) != 2:
-    fail("Usage: update_chaincodes repository")
-REPOSITORY = sys.argv[1]
-
 def call(script, *args):
     """Calls the given script using the args"""
 
     cmd = script + " " + " ".join(args)
-    if DEBUG:
-        print cmd
     if DRYRUN:
         print cmd
         return "hi"
@@ -64,8 +68,8 @@ def is_instantiated_or_installed(data, installed, ignore_version):
                       "--tls true"
                      )
 
-    pattern = "name:\"" + data['chaincode_name'] + "\" version:\"" + (".*" if ignore_version else data['chaincode_version']) + "\" path:\"" + data['chaincode_path'] + "\""
-    match_obj = re.search(pattern, chain_info)
+    pattern = "name:[\s\"]" + data['chaincode_name'] + "[,\"]\sversion:[\s\"]" + (".*" if ignore_version else data['chaincode_version']) + "[,\"]\spath:[\s\"]" + data['chaincode_path'] + "[,\"]"
+    match_obj = re.search(pattern, chain_info, re.I)
     if match_obj:
         return True
     return False
@@ -84,7 +88,8 @@ def compile_chaincode(data):
         call("/etc/hyperledger/chaincode_tools/compile_chaincode.sh", data['chaincode_path'])
         return "==> Compiled " + data['info'] + "!"
     elif data['chaincode_language'] == "node":
-        call("npm", "install", "--prefix", data['chaincode_path'])
+        if not os.path.isdir(data['chaincode_path'] + '/node_modules'):
+            call("npm", "install", "--prefix", data['chaincode_path'])
         return "==> Installed NPM for " + data['info'] + "!"
 
 def install_chaincode(data):
@@ -135,26 +140,26 @@ def format_args(args):
     comma = "," if args else ""
     return comma + ",".join(['\\\"' + a + '\\\"' for a in args])
 
-if not DRYRUN:
+if not DRYRUN and args.repository:
     # First pull latest version of chaincode:
-    subprocess.call("/etc/hyperledger/chaincode_tools/pull_chaincode.sh {0}".format(REPOSITORY), shell=True)
+    subprocess.call("/etc/hyperledger/chaincode_tools/pull_chaincode.sh {0}".format(args.repository), shell=True)
 
-    subprocess.call("npm install --production --prefix " + GOPATH + "/src", shell=True)
-    subprocess.call("npm run build --prefix " + GOPATH + "/src", shell=True)
+    subprocess.call("npm install --production --prefix " + CHAINCODE_PATH, shell=True)
+    subprocess.call("npm run build --prefix " + CHAINCODE_PATH, shell=True)
 
 with open(CONF_FILE) as chaincodes_stream:
     try:
         COMPILE_DATA = []
         INSTALL_DATA = []
         INSTANTIATE_DATA = []
-        chaincodes_data = json.load(chaincodes_stream)
+        CHAINCODES_DATA = json.load(chaincodes_stream)
         if CONF_IS_JSON_PACKAGE:
-            chaincodes_data = chaincodes_data["kuma-hf-chaincode-dev"]["chaincodes"]
-            
-        for chaincode_path in chaincodes_data:
-            absolute_chaincode_path = GOPATH + "/src/build/" + chaincode_path
-            if DRYRUN:
-                absolute_chaincode_path = GOPATH + "/src/chaincodes/" + chaincode_path
+            CHAINCODES_DATA = CHAINCODES_DATA["kuma-hf-chaincode-dev"]["chaincodes"]
+
+        for chaincode_path in CHAINCODES_DATA:
+            # Get the absolute path to the chaincode in question
+            # it's going to be in the build folder
+            absolute_chaincode_path = CHAINCODE_PATH + "/build/" + chaincode_path
             with open(absolute_chaincode_path + "/package.json") as stream:
                 try:
                     chaincode = json.load(stream)
@@ -162,13 +167,13 @@ with open(CONF_FILE) as chaincodes_stream:
                     chaincode_language = chaincode["hf-language"]
                     chaincode_version = chaincode["version"]
 
-                    must_compile = True
                     if chaincode_language == "node":
                         # Path for node must be absolute
                         print "Using node"
                         chaincode_path = absolute_chaincode_path
                     elif chaincode_language == "golang":
                         # Path for golang must be relative to $GOPATH/src
+                        chaincode_path = 'chaincodes/' + chaincode_path
                         print "Using go"
                     else:
                         fail("Unknown chaincode language " + chaincode_language + " ! Aborting.")
