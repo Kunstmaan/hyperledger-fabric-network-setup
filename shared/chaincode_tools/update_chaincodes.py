@@ -25,7 +25,7 @@ The script looks for a file $GOPATH/src/chaincodes.json which must contain the p
 """, formatter_class=RawTextHelpFormatter)
 PARSER.add_argument('--dryrun', help='Shows which commands would be run, without running them', action='store_true')
 PARSER.add_argument('--repository', '-r', type=str,help='the repository from which the chaincode should be fetched. If not given, assumes chaincodes are in $GOPATH/src/build/')
-PARSER.add_argument('--forceRebuild', '-f', help='forces the script to run npm install on each chaincode. By default it will only run npm install when the node_modules directory for that chaincode is missing', action='store_true')
+PARSER.add_argument('--forceNpmInstall', '-f', help='forces the script to run npm install on each chaincode. By default it will only run npm install when the node_modules directory for that chaincode is missing', action='store_true')
 
 args = PARSER.parse_args()
 DRYRUN = args.dryrun
@@ -88,7 +88,7 @@ def compile_chaincode(data):
         call("/etc/hyperledger/chaincode_tools/compile_chaincode.sh", data['chaincode_path'])
         return "==> Compiled " + data['info'] + "!"
     elif data['chaincode_language'] == "node":
-        if not os.path.isdir(data['chaincode_path'] + '/node_modules') or args.forceRebuild:
+        if not os.path.isdir(data['chaincode_path'] + '/node_modules') or args.forceNpmInstall:
             call("npm", "install", "--prefix", data['chaincode_path'])
         return "==> Installed NPM for " + data['info'] + "!"
 
