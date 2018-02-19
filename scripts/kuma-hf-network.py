@@ -42,7 +42,6 @@ def install_fabric_tools():
     print "Done"
 
 def gen_cryptographic_material(parsed_args):
-    print parsed_args
     if parsed_args.onlyChannelArtifacts:
         gen_channel_artifacts(parsed_args)
         exit(0)
