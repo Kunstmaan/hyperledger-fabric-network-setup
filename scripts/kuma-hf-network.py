@@ -48,7 +48,7 @@ def gen_cryptographic_material(parsed_args):
         exit(0)
     crypto_config = parsed_args.crypto_config
     gen_path = os.path.abspath(parsed_args.genPath)
-    #install_fabric_tools() TODO
+    install_fabric_tools()
 
     configtxbase = parsed_args.configtxBase
     no_override = parsed_args.noOverride
