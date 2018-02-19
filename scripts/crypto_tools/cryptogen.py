@@ -19,6 +19,7 @@ import os
 import sys
 import json
 from argparse import ArgumentParser
+from argparse import Action
 import yaml
 
 DEBUG = False
@@ -39,6 +40,19 @@ PARSER = ArgumentParser(description='Creates the channel artifacts and the chann
 PARSER.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
 PARSER.add_argument('--configtxBase', '-c', help='path to configtx hyperledger fabric config file, without the organisations and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
 PARSER.add_argument('--noOverride', help='Do not override existing files (default: override files). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
+
+user_attrs = {}
+class StoreDictKeyPair(Action):
+     def __call__(self, parser, namespace, values, option_string=None):
+         for kv in values.split(","):
+             k,v = kv.split("=")
+             user_attrs[k] = v
+         setattr(namespace, self.dest, user_attrs)
+
+PARSER.add_argument('--user', help='if a single user certificate should be generated', action='store_true')
+PARSER.add_argument('--name', help='the name of the user', action='store')
+PARSER.add_argument('--org', help='the organisation of the user', action='store')
+PARSER.add_argument('--attributes', help='the attributes for the user certificate', dest="user_attrs", action=StoreDictKeyPair, metavar="KEY1=VAL1,KEY2=VAL2...")
 
 args = PARSER.parse_args()
 YAML_CONFIG = args.crypto_config
@@ -384,58 +398,85 @@ def create_ca(caconf, is_tls=False, subfolder="", docker=False, can_sign=False, 
     else:
         create_msp(caconf["Domain"], ca_paths, is_tls, subfolder, is_admin)
 
-with open(YAML_CONFIG, 'r') as stream:
-    try:
-        CONF = yaml.load(stream)
-        CRYPTO_CONFIG_PATH = GEN_PATH + "/crypto-config/"
+if args.user:
+    print 'generating user {0} for {1}'.format(args.name, args.org)
+    CRYPTO_CONFIG_PATH = GEN_PATH + "/crypto-config/"
+    call("mkdir -p", CRYPTO_CONFIG_PATH)
 
-        call("mkdir -p", CRYPTO_CONFIG_PATH)
+    attr_values = ["\\\""+k+"\\\":"+"\\\""+str(v)+"\\\"" for k, v in args.user_attrs.iteritems()]
+    attributes = ",".join(attr_values)
 
-        for init_ca in CONF["PREGEN_CAs"]:
-            create_ca(init_ca["ca"], is_tls=False, docker=True, can_sign=True)
-            ca_path = CRYPTO_CONFIG_PATH + init_ca["ca"]["Domain"]
-            if OVERRIDE or not os.path.isdir(ca_path + '/tlsca'):
-                call('rm -rfd ', ca_path + '/tlsca')
-                call("cp -r", ca_path + "/ca", ca_path + "/tlsca")
-                call("mv", ca_path + "/tlsca/ca." + init_ca["ca"]["Domain"] + "-cert.pem",
-                     ca_path + "/tlsca/tlsca." + init_ca["ca"]["Domain"] + "-cert.pem"
-                    )
+    org = None
+    with open(YAML_CONFIG, 'r') as stream:
+        try:
+            CONF = yaml.load(stream)
+            for orgConf in CONF['Orgs']:
+                if orgConf['Name'] == args.org:
+                    org = orgConf
+        except yaml.YAMLError as exc:
+            print exc
+            exit(1)
+    
+    if not org:
+        print 'Unknown organisation {0}'.format(args.org)
+        exit(1)
+    else:
+        subfolder = 'users/{0}.{1}'.format(args.name, org['Domain'])
+        create_ca({'Parent':org["ca"], 'Domain':org["Domain"]}, is_tls=False, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=False)
+        create_ca({'Parent':org["tlsca"], 'Domain':org["Domain"]}, is_tls=True, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=False)
+else:
+    with open(YAML_CONFIG, 'r') as stream:
+        try:
+            CONF = yaml.load(stream)
+            CRYPTO_CONFIG_PATH = GEN_PATH + "/crypto-config/"
 
-                call("mv", ca_path + "/tlsca/ca." + init_ca["ca"]["Domain"] + "-key.pem",
-                     ca_path + "/tlsca/tlsca." + init_ca["ca"]["Domain"] + "-key.pem"
-                    )
-                create_combined_ca(init_ca["ca"], is_tls=True)
+            call("mkdir -p", CRYPTO_CONFIG_PATH)
+            print CONF["PREGEN_CAs"]
+            for init_ca in CONF["PREGEN_CAs"]:
+                create_ca(init_ca["ca"], is_tls=False, docker=True, can_sign=True)
+                ca_path = CRYPTO_CONFIG_PATH + init_ca["ca"]["Domain"]
+                if OVERRIDE or not os.path.isdir(ca_path + '/tlsca'):
+                    call('rm -rfd ', ca_path + '/tlsca')
+                    call("cp -r", ca_path + "/ca", ca_path + "/tlsca")
+                    call("mv", ca_path + "/tlsca/ca." + init_ca["ca"]["Domain"] + "-cert.pem",
+                        ca_path + "/tlsca/tlsca." + init_ca["ca"]["Domain"] + "-cert.pem"
+                        )
 
-        for theOrg in CONF["Orgs"]:
-            if 'peers' in theOrg and theOrg['peers']:
-                ORG_MAP['currentId'] += 1
-                ORG_MAP[theOrg["Domain"]] = {
-                    'id': ORG_MAP['currentId'],
-                    'peers': {
-                        'currentId': 0
+                    call("mv", ca_path + "/tlsca/ca." + init_ca["ca"]["Domain"] + "-key.pem",
+                        ca_path + "/tlsca/tlsca." + init_ca["ca"]["Domain"] + "-key.pem"
+                        )
+                    create_combined_ca(init_ca["ca"], is_tls=True)
+
+            for theOrg in CONF["Orgs"]:
+                if 'peers' in theOrg and theOrg['peers']:
+                    ORG_MAP['currentId'] += 1
+                    ORG_MAP[theOrg["Domain"]] = {
+                        'id': ORG_MAP['currentId'],
+                        'peers': {
+                            'currentId': 0
+                        }
                     }
-                }
-                EXPLORER_DATA_PROD['network-config'][get_org_nb(theOrg)] = {}
-            create_all_msp(theOrg)
+                    EXPLORER_DATA_PROD['network-config'][get_org_nb(theOrg)] = {}
+                create_all_msp(theOrg)
 
-        if ORG_MSP_CHANGED:
-            print 'Generating channel artifacts...'
+            if ORG_MSP_CHANGED:
+                print 'Generating channel artifacts...'
 
-            call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG, CONFIGTX_BASE)
-            call('mkdir -p', GEN_PATH + '/scripts')
-            with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
-                EXPLORER_DATA_PROD['channel'] = CONF['Channels'][0]['Name']
-                stream.write(json.dumps(EXPLORER_DATA_PROD,sort_keys=True,indent=2))
-            with open(GEN_PATH + '/scripts/explorer-config.dev.json', 'w+') as stream:
-                dev_org = CONF['Devmode']
-                EXPLORER_DATA_DEV['channel'] = CONF['Channels'][0]['Name']
-                EXPLORER_DATA_DEV['network-config']['org1'] = {}
-                add_admin_to_explorer(dev_org, dev_org['admins'][0], True)
-                add_peer_to_explorer(dev_org, dev_org['peers'][0], True)
+                call(to_pwd('../fabric_artifacts/gen_configtx.py'), YAML_CONFIG, CONFIGTX_BASE)
+                call('mkdir -p', GEN_PATH + '/scripts')
+                with open(GEN_PATH + '/scripts/explorer-config.prod.json', 'w+') as stream:
+                    EXPLORER_DATA_PROD['channel'] = CONF['Channels'][0]['Name']
+                    stream.write(json.dumps(EXPLORER_DATA_PROD,sort_keys=True,indent=2))
+                with open(GEN_PATH + '/scripts/explorer-config.dev.json', 'w+') as stream:
+                    dev_org = CONF['Devmode']
+                    EXPLORER_DATA_DEV['channel'] = CONF['Channels'][0]['Name']
+                    EXPLORER_DATA_DEV['network-config']['org1'] = {}
+                    add_admin_to_explorer(dev_org, dev_org['admins'][0], True)
+                    add_peer_to_explorer(dev_org, dev_org['peers'][0], True)
 
-                stream.write(json.dumps(EXPLORER_DATA_DEV,sort_keys=True,indent=2))
-        else:
-            print "Organisation MSP did not change, not regenerating channel artifacts"
+                    stream.write(json.dumps(EXPLORER_DATA_DEV,sort_keys=True,indent=2))
+            else:
+                print "Organisation MSP did not change, not regenerating channel artifacts"
 
-    except yaml.YAMLError as exc:
-        print exc
+        except yaml.YAMLError as exc:
+            print exc
