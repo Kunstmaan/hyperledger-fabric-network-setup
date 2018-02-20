@@ -12,7 +12,7 @@ import sys
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from argparse import Namespace
-
+from argparse import Action
 
 install_script = "https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftlJwD7jEr7kZph_QEsqncTTeroBFks5aZc1pwA%3D%3D"
 DEBUG = False
@@ -55,6 +55,7 @@ def gen_cryptographic_material(parsed_args):
         configtxbase = '--configtxBase {0}'.format(configtxbase)
     else:
         configtxbase = ''
+
     if not no_override:
         print "Cleaning pre-existing generated files..."
         call('rm -rfd {0}'.format(gen_path))
@@ -62,8 +63,22 @@ def gen_cryptographic_material(parsed_args):
         no_override = ''
     else:
         no_override = '--noOverride'
+
+    user = ''
+    name = ''
+    org = ''
+    attributes = ''
+    if parsed_args.user:
+        print "Creating a user certificate"
+        user = '--user'
+        name = '--name {0}'.format(parsed_args.name)
+        org = '--org {0}'.format(parsed_args.org)
+        if parsed_args.user_attrs:
+            attr_values = [k+"="+str(v) for k, v in parsed_args.user_attrs.items()]
+            attributes = '--attributes  {0}'.format(",".join(attr_values))
+
     print "Generating cryptographic material..."
-    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('crypto_tools/cryptogen.py'), crypto_config, no_override, configtxbase)
+    call('export GEN_PATH={0} &&'.format(gen_path), to_pwd('crypto_tools/cryptogen.py'), crypto_config, no_override, configtxbase, user, name, org, attributes)
     # This also generates the channel artifacts, if changes were made.
     print "Done"
 
@@ -144,10 +159,36 @@ PARSER_BOOTSTRAP.set_defaults(func=bootstrap)
 PARSER_GEN = SUBPARSERS.add_parser('generate', help="""generate certificate structure, initial channel blocks,
 hyperledger fabric artifacts and docker configurations.""")
 PARSER_GEN.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
+
 PARSER_GEN.add_argument('--genPath', '-g', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
 PARSER_GEN.add_argument('--noOverride', help='Do not override existing files (default: override files). Useful if you want to add more users. If this is not set, will delete the generated folder and generate everything from scratch', action='store_true')
 PARSER_GEN.add_argument('--onlyChannelArtifacts', help='Only generate hyperledger fabric channel artifacts. Will not generate the certificate structure, assumes this exists already.  Only use this if you made manual changes to the generated folder, which requires new channel artifacts to be generated.', action='store_true')
-PARSER_GEN.add_argument('--configtxBase', '-c', help='path to configtx hyperledger fabric config file, without the organisations  and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
+PARSER_GEN.add_argument('--configtxBase', '-c', help='path to configtx hyperledger fabric config file, without the organisations and profiles (they will be generated). Defaults to a simple orderer configuration.', action='store')
+PARSER_GEN.set_defaults(user=False)
+PARSER_GEN.set_defaults(func=gen_cryptographic_material)
+
+#######################################
+#           GENERATE USER
+#######################################
+user_attrs = {}
+class StoreDictKeyPair(Action):
+     def __call__(self, parser, namespace, values, option_string=None):
+         for kv in values.split(","):
+             k,v = kv.split("=")
+             user_attrs[k] = v
+         setattr(namespace, self.dest, user_attrs)
+
+PARSER_GEN = SUBPARSERS.add_parser('generate-user', help='generate certificate structure for a new user')
+PARSER_GEN.add_argument('name', type=str, help='the name of the user')
+PARSER_GEN.add_argument('org', type=str, help='the organisation of the user')
+PARSER_GEN.add_argument('crypto_config', type=str, help='cryptographic configuration of the network, as YAML file. See the provided example for details.')
+
+PARSER_GEN.add_argument('--genPath', '-g', type=str, help='Where the generated files should be saved (default: ./generated)', default='./generated')
+PARSER_GEN.add_argument('--attributes', help='the attributes for the user certificate', dest="user_attrs", action=StoreDictKeyPair, metavar="KEY1=VAL1,KEY2=VAL2...", default={})
+PARSER_GEN.set_defaults(user=True)
+PARSER_GEN.set_defaults(onlyChannelArtifacts=False)
+PARSER_GEN.set_defaults(configtxBase=None)
+PARSER_GEN.set_defaults(noOverride=True)
 PARSER_GEN.set_defaults(func=gen_cryptographic_material)
 
 #######################################
