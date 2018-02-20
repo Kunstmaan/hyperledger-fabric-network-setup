@@ -125,7 +125,7 @@ def instantiate_chaincode(data):
              "--version", data['chaincode_version'],
              "--ctor", """\"{\\\"Args\\\":[\\\"Init\\\""""+data['instantiate_args']+"""]}\"""",
              "--channelID", data['channel_id'],
-             # "--policy", '\"' + data['chaincode_policy'] + '\"', TODO
+             "--policy \"" + data['chaincode_policy'].replace('"', "\\\"").replace("'", "\\\"") + "\"" if data['chaincode_policy'] else '',
              "--tls true",
              "--lang", data['chaincode_language']
             )
@@ -183,7 +183,7 @@ with open(CONF_FILE) as chaincodes_stream:
                     for net_config in chaincode["hf-network"]:
                         channel_id = net_config["channelId"]
                         instantiate_args = format_args(net_config["instantiateArgs"])
-                        chaincode_policy = net_config["endorsementPolicy"]
+                        chaincode_policy = net_config["endorsementPolicy"] if "endorsementPolicy" in net_config else None
                         orderer_host = net_config["orderer"]["host"]
                         orderer_port = str(net_config["orderer"]["port"])
                         orderer_host_port = orderer_host + ":" + orderer_port
