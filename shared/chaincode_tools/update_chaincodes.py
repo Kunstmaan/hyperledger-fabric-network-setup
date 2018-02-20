@@ -125,7 +125,7 @@ def instantiate_chaincode(data):
              "--version", data['chaincode_version'],
              "--ctor", """\"{\\\"Args\\\":[\\\"Init\\\""""+data['instantiate_args']+"""]}\"""",
              "--channelID", data['channel_id'],
-             "--policy \"" + data['chaincode_policy'].replace('"', "'") + "\"" if data['chaincode_policy'] else '',
+             "--policy \"" + data['chaincode_policy'].replace('"', "\\\"").replace("'", "\\\"") + "\"" if data['chaincode_policy'] else '',
              "--tls true",
              "--lang", data['chaincode_language']
             )
