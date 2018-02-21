@@ -131,8 +131,8 @@ def instantiate_chaincode(data):
             )
 
         if upgrade:
-            return "==> Upgraded " + data['info'] + " on " + data['peer'] + "!"
-        return "==> Instantiated " + data['info'] + " on " + data['peer'] + "!"
+            return "==> Upgraded " + data['info'] + " with policy " + data['chaincode_policy'] + " on " + data['peer'] + "!"
+        return "==> Instantiated " + data['info'] + " with policy " + data['chaincode_policy'] + " on " + data['peer'] + "!"
     return "==> " + data['info'] + " is already instantiated on " + data['peer'] + "!"
 
 def format_args(args):
