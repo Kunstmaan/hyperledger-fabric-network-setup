@@ -113,6 +113,8 @@ def source_peer(peer):
 
 def instantiate_chaincode(data):
     """Instantiates chaincode on one of the peers"""
+    info = data['info']
+    
     if not is_instantiated(data):
         upgrade = is_instantiated(data, ignore_version=True)
 
@@ -130,7 +132,6 @@ def instantiate_chaincode(data):
              "--lang", data['chaincode_language']
             )
         
-        info = data['info']
         if data['chaincode_policy']:
             info = info + " with policy " + data['chaincode_policy']
 
