@@ -25,6 +25,9 @@ DEVMODE_ARTIFACT_SCRIPT_NAME = 'create_devmode_channel_artifacts.sh'
 DEVMODE_ARTIFACT_SCRIPT = GEN_PATH + "/channel/" + DEVMODE_ARTIFACT_SCRIPT_NAME
 DEVMODE_CHANNEL_SCRIPT = GEN_PATH + "/devmode/script.sh"
 
+def convert_to_msp_id(domain):
+    return ''.join(part.capitalize() for part in domain.split('.')) + "MSP"
+
 def fail(msg):
     """Prints the error message and exits"""
     sys.stderr.write(msg)
@@ -58,7 +61,7 @@ if args.configtxBase:
 
 def add_org(org_conf):
     """Returns the org config for configtx"""
-    mspId = org_conf['Name'] + 'MSP'
+    mspId = convert_to_msp_id(org_conf["Domain"])
 
     yaml_org = """
     - &{0}
@@ -354,7 +357,6 @@ CONFIGTX_PREAMBLE = """
 Organizations:
 """
 
-
 with open(YAML_CONFIG, 'r') as stream:
     with open(CONFIGTX_FILENAME, 'a') as configtx:
         with open(ARTIFACT_SCRIPT, 'w') as art_script:
@@ -393,7 +395,7 @@ peer channel join -b {0}.block\n\n""".format(theChannel['Name']))
                             configtx.write(add_devmode(CONF))
                             devmode_channel_script.write(DEVMODE_CHANNEL_SCRIPT_END)
 
-                            devModeMSPId = CONF["Name"] + "MSP"
+                            devModeMSPId = convert_to_msp_id(CONF['Devmode']['Domain'])
                             call(to_pwd("create_dev_docker_compose.py"), CONF['Devmode']['Domain'], devModeMSPId, CONF['Devmode']['peers'][0]['Hostname'], CONF['Devmode']['admins'][0]['Hostname'])
                         except yaml.YAMLError as exc:
                             print exc

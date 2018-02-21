@@ -30,7 +30,7 @@ set -eu -o pipefail
 
 CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/$ORG/users/$ADMIN.$ORG/msp
 CORE_PEER_ID=$PEER.$ORG
-CORE_PEER_LOCALMSPID=$MSPId
+CORE_PEER_LOCALMSPID=$MSPID
 CORE_PEER_ADDRESS=$PEER.$ORG:$PEER_PORT
 CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto-config/$ORG/peers/$PEER.$ORG/tlsca/tlsca.$PEER.$ORG-key.pem
 CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto-config/$ORG/peers/$PEER.$ORG/tlsca/tlsca.$PEER.$ORG-cert.pem
