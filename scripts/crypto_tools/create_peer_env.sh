@@ -3,11 +3,11 @@
 
 set -eu -o pipefail
 
-if [ $# -ne 5 ];
+if [ $# -ne 6 ];
 then
 	echo ""
 	echo "Usage: "
-	echo "	create_peer_env PEER PEER_PORT ORG ADMIN ORG_FOLDER"
+	echo "	create_peer_env PEER PEER_PORT ORG MSPID ADMIN ORG_FOLDER"
   echo "  Creates a script that changes the environment to the one of the given peer"
 	echo ""
 	exit 1
@@ -17,8 +17,9 @@ fi
 PEER=$1
 PEER_PORT=$2
 ORG=$3
-ADMIN=$4
-ORG_FOLDER=$5
+MSPID=$4
+ADMIN=$5
+ORG_FOLDER=$6
 
 mkdir -p $ORG_FOLDER/../tools
 FILE="$ORG_FOLDER/../tools/set_env.$PEER.$ORG.sh"
@@ -29,7 +30,7 @@ set -eu -o pipefail
 
 CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/$ORG/users/$ADMIN.$ORG/msp
 CORE_PEER_ID=$PEER.$ORG
-CORE_PEER_LOCALMSPID=${ORG//./-}-MSP
+CORE_PEER_LOCALMSPID=$MSPId
 CORE_PEER_ADDRESS=$PEER.$ORG:$PEER_PORT
 CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto-config/$ORG/peers/$PEER.$ORG/tlsca/tlsca.$PEER.$ORG-key.pem
 CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto-config/$ORG/peers/$PEER.$ORG/tlsca/tlsca.$PEER.$ORG-cert.pem

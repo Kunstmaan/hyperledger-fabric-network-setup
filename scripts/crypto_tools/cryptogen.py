@@ -137,6 +137,7 @@ def create_peer_docker(peer, org):
         to_pwd("docker_peer.sh"),
         peer["Hostname"],
         org["Domain"],
+        org["MSPId"],
         ",".join(peer["Ports"]),
         str(peer["CouchdbPort"]),
         )
@@ -149,6 +150,7 @@ def create_peer_docker(peer, org):
         peer["Hostname"],
         peer["Ports"][0].split(":")[0],
         org["Domain"],
+        org["MSPId"],
         org["admins"][0]["Hostname"],
         CRYPTO_CONFIG_PATH + org["Domain"]
     )
@@ -175,7 +177,7 @@ def add_admin_to_explorer(org, admin, is_dev = False):
                 'cert': base+'signcerts'
             }
             explorer['network-config'][org_nb]['name'] = org['Domain']
-            explorer['network-config'][org_nb]['mspid'] = org['Domain'].replace('.', '-') + '-MSP'
+            explorer['network-config'][org_nb]['mspid'] = org['MSPId']
 
 def add_peer_to_explorer(org, peer, is_dev = False):
     # Also add this to the explorer data
@@ -223,6 +225,7 @@ def create_orderer_docker(orderer, org):
         to_pwd("docker_orderer.sh"),
         orderer["Hostname"],
         org["Domain"],
+        org["MSPId"],
         ",".join(peer_cn),
         ",".join(peer_orgs),
         str(orderer["Port"])
@@ -249,7 +252,7 @@ def remove_cert(filename):
     """Removes suffix -cert.pem from filename"""
     return filename[:-9] # -cert.pem --> 9 chars
 
-def create_msp(org_domain, ca_paths, is_tls, subfolder, is_admin):
+def create_msp(org_domain, org_mspid, ca_paths, is_tls, subfolder, is_admin):
     """Creates and fills the MSP folder with certificates"""
     user_folder = CRYPTO_CONFIG_PATH + org_domain + "/" + subfolder
     msp_folder = user_folder + "/msp"
@@ -261,7 +264,7 @@ def create_msp(org_domain, ca_paths, is_tls, subfolder, is_admin):
         if is_admin:
             call("cp", ca_paths[-1], msp_folder + "/admincerts")
             call("cp -r", ca_paths[-1], org_admincerts)
-        call(PWD + "/signingIdentity/generateSigningIdentity.sh", user_folder)
+        call(PWD + "/signingIdentity/generateSigningIdentity.sh", user_folder, org_mspid)
 
     if is_not_org and not is_tls:
         call("cp -r", org_admincerts, msp_folder + "/admincerts")
@@ -324,8 +327,8 @@ def create_all_msp(org):
                     attributes = ",".join(attr_values)
 
                 subfolder = subfolder + "/" + elem_domain
-                create_ca({'Parent':org["ca"], 'Domain':org["Domain"]}, is_tls=False, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=is_admin)
-                create_ca({'Parent':org["tlsca"], 'Domain':org["Domain"]}, is_tls=True, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=is_admin)
+                create_ca({'Parent':org["ca"], 'Domain':org["Domain"], 'MSPId': org["MSPId"]}, is_tls=False, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=is_admin)
+                create_ca({'Parent':org["tlsca"], 'Domain':org["Domain"], 'MSPId': org["MSPId"]}, is_tls=True, can_sign=False, subfolder=subfolder, attributes=attributes, is_admin=is_admin)
 
 def getSuffix(domain, subfolder):
     if subfolder == "":
@@ -396,7 +399,7 @@ def create_ca(caconf, is_tls=False, subfolder="", docker=False, can_sign=False, 
     if docker:
         create_docker("ca", caconf, None)
     else:
-        create_msp(caconf["Domain"], ca_paths, is_tls, subfolder, is_admin)
+        create_msp(caconf["Domain"], caconf["MSPId"], ca_paths, is_tls, subfolder, is_admin)
 
 if args.user:
     print 'generating user {0} for {1}'.format(args.name, args.org)
@@ -448,6 +451,7 @@ else:
                     create_combined_ca(init_ca["ca"], is_tls=True)
 
             for theOrg in CONF["Orgs"]:
+                theOrg['MSPId'] = theOrg["Name"] + "MSP"
                 if 'peers' in theOrg and theOrg['peers']:
                     ORG_MAP['currentId'] += 1
                     ORG_MAP[theOrg["Domain"]] = {

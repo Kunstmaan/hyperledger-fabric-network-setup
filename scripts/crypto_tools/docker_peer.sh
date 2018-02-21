@@ -3,11 +3,11 @@
 
 set -eu -o pipefail
 
-if [ $# -ne 4 ];
+if [ $# -ne 5 ];
 then
   echo ""
   echo "Usage: "
-  echo "  docker_peer COMMON_NAME ORGANISATION PORTS COUCHDBPORT"
+  echo "  docker_peer COMMON_NAME ORGANISATION MSPID PORTS COUCHDBPORT"
   echo "  PORTS are comma separated of the form HOSTPORT:CONTAINERPORT"
   echo "  This script creates a docker file to be able to run a hyperledger"
   echo "  fabric peer"
@@ -17,8 +17,9 @@ fi
 
 CN=$1
 ORG=$2
-PORTS=$(echo $3 | tr "," " ") # comma separated peers
-COUCHDBPORT=$4
+MSPID=$3
+PORTS=$(echo $4 | tr "," " ") # comma separated peers
+COUCHDBPORT=$5
 declare -a PORTS="( $PORTS )"
 FOLDER=$GEN_PATH/docker
 mkdir -p "$FOLDER"
@@ -60,7 +61,7 @@ services:
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/peer/msp
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_ID=$CN.$ORG
-      - CORE_PEER_LOCALMSPID=${ORG//./-}-MSP
+      - CORE_PEER_LOCALMSPID=$MSPID
       - CORE_PEER_ADDRESS=$CN.$ORG:7051
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto-config/peer/tlsca/tlsca.$CN.$ORG-key.pem
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto-config/peer/tlsca/tlsca.$CN.$ORG-cert.pem

@@ -3,11 +3,11 @@
 
 set -eu -o pipefail
 
-if [ $# -ne 5 ];
+if [ $# -ne 6 ];
 then
   echo ""
   echo "Usage: "
-  echo "  docker_orderer COMMON_NAME ORGANISATION PEERS ORGS PORT"
+  echo "  docker_orderer COMMON_NAME ORGANISATION MSPID PEERS ORGS PORT"
     echo "  PEERS and ORGS are comma separated"
   echo "  This script creates a docker file to be able to run a hyperledger"
   echo "  fabric orderer"
@@ -17,10 +17,11 @@ fi
 
 CN=$1
 ORG=$2
-Peers=$(echo $3 | tr "," " ") # comma separated peers
+MSPID=$3
+Peers=$(echo $4 | tr "," " ") # comma separated peers
 declare -a Peers="( $Peers )"
-Orgs=$(echo $4 | tr "," " ") # comma separated orgs
-Port=$5
+Orgs=$(echo $5 | tr "," " ") # comma separated orgs
+Port=$6
 declare -a Orgs="( $Orgs )"
 FOLDER=$GEN_PATH/docker
 mkdir -p "$FOLDER"
@@ -52,7 +53,7 @@ services:
         - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
         - ORDERER_GENERAL_GENESISMETHOD=file
         - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/$CN.$ORG.genesis.block
-        - ORDERER_GENERAL_LOCALMSPID=${ORG//./-}-MSP
+        - ORDERER_GENERAL_LOCALMSPID=$MSPID
         - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/crypto-config/orderer/msp
         - ORDERER_GENERAL_TLS_ENABLED=true
         - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/crypto-config/orderer/tlsca/tlsca.$CN.$ORG-cert.pem""" > $FILE

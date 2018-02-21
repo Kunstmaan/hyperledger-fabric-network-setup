@@ -8,12 +8,13 @@ import sys
 GEN_PATH = os.environ["GEN_PATH"]
 
 # Parse args
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     sys.stderr.write("Usage: create_dev_docker_compose.py org peer admin")
     exit(1)
 ORG = sys.argv[1]
-PEER = sys.argv[2]
-ADMIN = sys.argv[3]
+MSPID = sys.argv[2]
+PEER = sys.argv[3]
+ADMIN = sys.argv[4]
 
 with open(GEN_PATH + '/devmode/docker-compose-simple.yaml', 'w') as stream:
     stream.write("""version: '2'
@@ -130,7 +131,7 @@ networks:
     external:
       name: hyperledgerNet
 """.format(
-    ORG.replace('.', '-') + '-MSP',
+    MSPID,
     ORG,
     PEER,
     ADMIN

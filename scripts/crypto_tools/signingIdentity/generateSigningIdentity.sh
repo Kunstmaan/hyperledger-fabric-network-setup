@@ -10,6 +10,7 @@
 set -eu -o pipefail
 
 USER_FOLDER=$1
+MSPID=$2
 
 USER_FULL_NAME=$(basename $USER_FOLDER)
 CERT_FILE=$USER_FOLDER/ca/ca.$USER_FULL_NAME-cert.pem
@@ -35,7 +36,7 @@ CERT_NO_NEWLINES=$(printf "%s\\\n" $(openssl x509 -in $CERT_FILE | tr " " "*") |
 
 echo """{
   \"name\": \"$USER_BASE_NAME\",
-  \"mspid\": \"${ORG//./-}-MSP\",
+  \"mspid\": \"${MSPID}\",
   \"roles\": null,
   \"affiliation\": \"\",
   \"enrollmentSecret\": \"\",

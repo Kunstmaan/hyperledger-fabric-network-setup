@@ -58,7 +58,7 @@ if args.configtxBase:
 
 def add_org(org_conf):
     """Returns the org config for configtx"""
-    msp_name = org_conf['Domain'].replace('.', '-') + '-MSP'
+    mspId = org_conf['Name'] + 'MSP'
 
     yaml_org = """
     - &{0}
@@ -66,7 +66,7 @@ def add_org(org_conf):
       # ID to load the MSP definition as
       # ID must match ID given in docker file
       ID: {1}
-      MSPDir: ../crypto-config/{2}/msp""".format(org_conf['Name'], msp_name, org_conf['Domain'])
+      MSPDir: ../crypto-config/{2}/msp""".format(org_conf['Name'], mspId, org_conf['Domain'])
 
     if 'peers' in org_conf and org_conf['peers']:
         peer = org_conf['peers'][0]
@@ -393,7 +393,8 @@ peer channel join -b {0}.block\n\n""".format(theChannel['Name']))
                             configtx.write(add_devmode(CONF))
                             devmode_channel_script.write(DEVMODE_CHANNEL_SCRIPT_END)
 
-                            call(to_pwd("create_dev_docker_compose.py"), CONF['Devmode']['Domain'], CONF['Devmode']['peers'][0]['Hostname'], CONF['Devmode']['admins'][0]['Hostname'])
+                            devModeMSPId = CONF["Name"] + "MSP"
+                            call(to_pwd("create_dev_docker_compose.py"), CONF['Devmode']['Domain'], devModeMSPId, CONF['Devmode']['peers'][0]['Hostname'], CONF['Devmode']['admins'][0]['Hostname'])
                         except yaml.YAMLError as exc:
                             print exc
 
