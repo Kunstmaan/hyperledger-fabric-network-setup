@@ -129,11 +129,15 @@ def instantiate_chaincode(data):
              "--tls true",
              "--lang", data['chaincode_language']
             )
+        
+        info = data['info']
+        if data['chaincode_policy']:
+            info = info + " with policy " + data['chaincode_policy']
 
         if upgrade:
-            return "==> Upgraded " + data['info'] + " with policy " + data['chaincode_policy'] + " on " + data['peer'] + "!"
-        return "==> Instantiated " + data['info'] + " with policy " + data['chaincode_policy'] + " on " + data['peer'] + "!"
-    return "==> " + data['info'] + " is already instantiated on " + data['peer'] + "!"
+            return "==> Upgraded " + info + " on " + data['peer'] + "!"
+        return "==> Instantiated " + info + " on " + data['peer'] + "!"
+    return "==> " + info + " is already instantiated on " + data['peer'] + "!"
 
 def format_args(args):
     """Formats the args with escaped " """
