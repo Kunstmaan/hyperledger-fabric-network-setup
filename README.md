@@ -13,7 +13,7 @@ Install the dependencies:
 Run the following command from your terminal:
 
 ```
-    curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftlJwD7jEr7kZph_QEsqncTTeroBFks5aZc1pwA%3D%3D | bash
+curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftlJwD7jEr7kZph_QEsqncTTeroBFks5aZc1pwA%3D%3D | bash
 ```
 
 This repo depends on the fact that the chaincode repo you want to deploy has at least the chaincodes configuration in your package.json
