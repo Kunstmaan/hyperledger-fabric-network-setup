@@ -133,7 +133,7 @@ def bootstrap(parsed_args):
     call('cp -r', to_pwd('../configuration'), './example-configuration')
     crypto_config = './example-configuration/crypto_config-example.yaml'
     gen_path = './example-configuration/generated'
-    new_args = Namespace(crypto_config=crypto_config, gen_path=gen_path, onlyChannelArtifacts=False, noOverride=False)
+    new_args = Namespace(crypto_config=crypto_config, genPath=gen_path, onlyChannelArtifacts=False, noOverride=False, configtxBase=None, user=None)
     gen_cryptographic_material(new_args)
 
 

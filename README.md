@@ -8,22 +8,125 @@ Install the dependencies:
     * vagrant-aws
     * vagrant-docker-compose
 * [NPM](https://docs.npmjs.com/getting-started/installing-node)
-* [aws](https://aws.amazon.com/cli/) command line with the region and keys configured (run `aws configure`)
-* Environment variables
-   * AWS_SECRET_ACCESS_KEY=your aws secret key
-   * AWS_ACCESS_KEY_ID=your aws access key id
+* [aws](https://aws.amazon.com/cli/)
 
 Run the following command from your terminal:
 
+```
     curl -fsSL https://raw.githubusercontent.com/Kunstmaan/hyperledger-fabric-network-setup/master/scripts/install.sh?token=AG6ftlJwD7jEr7kZph_QEsqncTTeroBFks5aZc1pwA%3D%3D | bash
-    
+```
+
 This repo depends on the fact that the chaincode repo you want to deploy has at least the chaincodes configuration in your package.json
 https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup#initializing-new-project
 
-# Scripts:
+# Commands
 
+With the following command you can get an overview of all the commands available:
+
+```
+kuma-hf-network -h
+```
+
+## Boostrap a default network configuration
+
+When you want to create a new network configuration, you can initialize a new network with the following command:
+
+```
+kuma-hf-network boostrap
+```
+
+This will create a default aws configuration and network configuration and generate all the artifacts based on this configuration.
+
+## Generate certificates, docker files, channel artifacts
+
+```
+kuma-hf-network generate <crypto_config>
+```
+
+Generates all the artifacts needed to bring the network up and configure the channels based on the provided `crypto_config`.
+
+## Generate a new user for a certain organisation
+
+```
+kuma-hf-network generate-user <name> <org> <crypto_config>
+```
+
+Generate al the crytographic material for a new user belonging to a certain organisation.
+
+Generates all the artifacts needed to bring the network up and configure the channels based on the provided `crypto_config`.
+
+## Bring the network UP
+
+```
+kuma-hf-network network-up <crypto_config> <aws_config>
+```
+
+Create all the aws instances as provided in the `aws_config` and bring up all the fabric instances using the cryptographic material generated with the `crypto_config`. This will also output scripts for updating the hosts file with the DNS linking to the ip addresses on aws.
+
+## Bring the network DOWN
+
+```
+kuma-hf-network network-down <aws_config>
+```
+
+Bring the network back down.
+
+## Update the chaincodes on the current network
+
+```
+kuma-hf-network update-chaincodes
+```
+
+Upgrade the chaincodes on the network based on the version in the `package.json` of each chaincode. This script depends on the chaincodes being generated with the [hyperledger-fabric-chaincode-dev-setup](https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup).
+
+## Update the current tool
+
+```
+kuma-hf-network update
+```
+
+Update the script to the latest version.
+
+# AWS Configuration
+
+In the back we are using the aws cli utility, make sure this is configured correctly by running àws configure`. And setting the following environment variables: 
+   * `AWS_SECRET_ACCESS_KEY`, your aws secret key
+   * `AWS_ACCESS_KEY_ID`, your aws access key id
+
+More information can be found here:
+https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
+
+## Configuring your AWS EC2 Instances
+
+For configuring the instances of your network create a configuration file as seen in [configuration/aws-example.json](`./configuration/aws-example.json`). This is the configuration file you need to provide when running `kuma-hf-network network-up`.
+
+* `region`, the region to start the instances in, for example "eu-west-1"
+* `availability_zone`, the availability zone within the region to launch the instance. If nil, it will use the default set by Amazon.
+* `security_groups`, an array of security group ids, more information can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
+* `subnet_id`, TODO
+* `keypair_name`, the name of the keypair that should be used to access the EC2 Instance, more information can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
+* `private_key_path`, the path on your local machine to the private key of the keypair
+* `ssh_username`, the name of the user to access the EC2 instance
+* `consul_master_ip`, the ip address of the instance you want to use as consul master
+* `chaincode_github`, the gitrepository where the chaincode can be found
+* `private_ssh_key_for_chaincode_repo`, the path to the private key needed to get access to to the chaincode repository
+* `public_ssh_key_for_chaincode_repo`, the path to the public key needed to get access to to the chaincode repository
+* `ec2s`, a map of all the ec2 instances you cant to deploy, with the key being the name and the value being instance specific configuration
+
+### EC2 Instance configuration
+
+You can create as many of ec2 instances as you want, for every instance you need to configure the following things:
+
+* `ami_id`, the ami id to boot, for example: ami-785db401 which is an amd64 ubuntu server
+* `instance_type`: the type of instance
+* `fabric`: an array with the different fabric tools you want to deploy on this instance. Each tool exists out of the role (possible roles are "orderer", "peer" and "tools") and the docker file to use.
+* `ip`: the ip address for this instance
+* `volume_size`: the volume size for the ebs instance in GB
+
+# An overview of the indiviual scripts:
 ---
-#### Environment variables description:
+
+Environment variables description:
 * `GEN_PATH`: The path to the folder that should contain crypto-config, docker files and channel artifacts
 
 ---
@@ -66,7 +169,7 @@ The `shared/chaincode_tools/` folder contains code intended to run on the tools 
 * `provisioning/install_fabric_tools.sh`
     > installs `configtxgen`, `configtxlator`, `cryptogen`, `orderer`, `peer`
 
-## Structure of the generated folder
+# Structure of the generated folder
 
 This folder is created by running `scripts/hyperledgerNetworkTool.py gen`
 

@@ -140,10 +140,10 @@ def configure_instance(aws_node, private_ip_address, node_name, node_config)
     ec2.private_ip_address = private_ip_address
     ec2.associate_public_ip = true
 
-    if node_config.key?('memory_size')
+    if node_config.key?('volume_size')
       # Size in GB
       # (untested)
-      ec2.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => node_config['memory_size'] }]
+      ec2.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => node_config['volume_size'] }]
     end
 
     override.ssh.username = AWS_CFG['ssh_username']

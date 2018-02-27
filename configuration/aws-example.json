@@ -29,7 +29,7 @@
                 }
             ],
             "ip": "10.42.1.4",
-            "memory_size": 15
+            "volume_size": 15
         },
         "files_to_sync": {
             "source1": "destination1",
