@@ -243,7 +243,7 @@ Vagrant.configure(2) do |config|
 
   # loop through each of 'ec2s' key
   AWS_CFG['ec2s'].each do |node|
-    node_name = 'Hyperledger_' + node[0]
+    node_name = 'HLF_' + node[0]
     node_config = node[1] # The node data
     private_ip_address = node_config['ip']
 

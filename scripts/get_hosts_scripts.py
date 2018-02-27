@@ -105,7 +105,7 @@ SCRIPT_CLEANER.write(PREAMBLE)
 SCRIPT_CLEANER.write("# This script removes automatically generated entries from the /etc/hosts file\n\n")
 
 for instance in AWS_CONF["ec2s"]:
-    instance_name = "Hyperledger_"+instance
+    instance_name = "HLF_"+instance
     instance_id = "$(cat {0}/machines/".format(VAGRANT_FOLDER) + instance_name + "/aws/id)"
     if DO_PUBLIC:
         public_ip = call("aws ec2 describe-instances --filter \"Name=instance-id,Values=" + instance_id + "\" --query 'Reservations[0].Instances[0].PublicIpAddress'")
