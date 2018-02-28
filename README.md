@@ -98,17 +98,19 @@ https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
 
 ## Configuring your AWS EC2 Instances
 
-For configuring the instances of your network create a configuration file as seen in [configuration/aws-example.json](`./configuration/aws-example.json`). This is the configuration file you need to provide when running `kuma-hf-network network-up`.
+First you need to configure your AWS account, make sure a VPC is created with a keypair to access it, it's own subnet and security-group. A detailed tutorial can be found [here](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html). When this is all configured you can start modifying the configuration file so that this script can bring the network up. Configuring the network can be done via the [aws configuration file](./configuration/aws-example.json). This is the configuration file you need to provide when running `kuma-hf-network network-up`.
 
 * `region`, the region to start the instances in, for example "eu-west-1"
 * `availability_zone`, the availability zone within the region to launch the instance. If nil, it will use the default set by Amazon.
 * `security_groups`, an array of security group ids, more information can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
-* `subnet_id`, TODO
+* `subnet_id`, the id of the subnet to use, more information can be found [here](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html)
 * `keypair_name`, the name of the keypair that should be used to access the EC2 Instance, more information can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
 * `private_key_path`, the path on your local machine to the private key of the keypair
 * `ssh_username`, the name of the user to access the EC2 instance
 * `consul_master_ip`, the ip address of the instance you want to use as consul master
-* `chaincode_github`, the gitrepository where the chaincode can be found
+* `chaincode_repository`, the gitrepository where the chaincode can be found
+* `chaincode_path`, the path to the chaincode inside the chaincode github repository
+* `chaincode_build`, specify if the chaincode should be build first, this will execute "npm run build"
 * `private_ssh_key_for_chaincode_repo`, the path to the private key needed to get access to to the chaincode repository
 * `public_ssh_key_for_chaincode_repo`, the path to the public key needed to get access to to the chaincode repository
 * `ec2s`, a map of all the ec2 instances you cant to deploy, with the key being the name and the value being instance specific configuration
