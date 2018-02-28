@@ -25,19 +25,19 @@ The script looks for a file $GOPATH/src/chaincodes.json which must contain the p
 """, formatter_class=RawTextHelpFormatter)
 PARSER.add_argument('--dryrun', help='Shows which commands would be run, without running them', action='store_true')
 PARSER.add_argument('--repository', '-r', type=str,help='the repository from which the chaincode should be fetched. If not given, assumes chaincodes are in $GOPATH/src/build/')
-PARSER.add_argument('--chaincodePath', '-p', type=str,help='optional path of the chaincodes inside the repository, only needed when a repository is given, default will be the root of the repository', default='.')
+PARSER.add_argument('--chaincodeBasePath', '-p', type=str,help='optional path of the chaincodes inside the repository, only needed when a repository is given, default will be the root of the repository. This path is where the package.json or chaincodes.json is.', default='.')
 PARSER.add_argument('--forceNpmInstall', '-f', help='forces the script to run npm install on each chaincode. By default it will only run npm install when the node_modules directory for that chaincode is missing', action='store_true')
 PARSER.add_argument('--build', '-b', help='chaincode needs to be build first, this will execute "npm run build"', action='store_true')
 
 args = PARSER.parse_args()
 DRYRUN = args.dryrun
 
-CHAINCODE_PATH = os.path.normpath(os.path.join(os.environ['GOPATH'] + '/src', args.chaincodePath))
-CONF_FILE = CHAINCODE_PATH + '/chaincodes.json'
+CHAINCODE_BASE_PATH = os.path.normpath(os.path.join(os.environ['GOPATH'] + '/src', args.chaincodeBasePath))
+CONF_FILE = CHAINCODE_BASE_PATH + '/chaincodes.json'
 CONF_IS_JSON_PACKAGE = False
 
 if not os.path.isfile(CONF_FILE):
-    CONF_FILE = CHAINCODE_PATH + '/package.json'
+    CONF_FILE = CHAINCODE_BASE_PATH + '/package.json'
     CONF_IS_JSON_PACKAGE = True
 
 def fail(msg):
@@ -153,9 +153,9 @@ if not DRYRUN and args.repository:
     # First pull latest version of chaincode:
     subprocess.call("/etc/hyperledger/chaincode_tools/pull_chaincode.sh {0}".format(args.repository), shell=True)
 
-    subprocess.call("npm install --production --prefix " + CHAINCODE_PATH, shell=True)
+    subprocess.call("npm install --production --prefix " + CHAINCODE_BASE_PATH, shell=True)
     if args.build:
-        subprocess.call("npm run build --prefix " + CHAINCODE_PATH, shell=True)
+        subprocess.call("npm run build --prefix " + CHAINCODE_BASE_PATH, shell=True)
 
 with open(CONF_FILE) as chaincodes_stream:
     try:
@@ -169,7 +169,7 @@ with open(CONF_FILE) as chaincodes_stream:
         for chaincode_path in CHAINCODES_DATA:
             # Get the absolute path to the chaincode in question
             # it's going to be in the build folder
-            absolute_chaincode_path = CHAINCODE_PATH
+            absolute_chaincode_path = CHAINCODE_BASE_PATH
 
             if args.build:
                 absolute_chaincode_path = absolute_chaincode_path + "/build/"

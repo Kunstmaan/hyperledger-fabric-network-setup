@@ -109,7 +109,7 @@ First you need to configure your AWS account, make sure a VPC is created with a 
 * `ssh_username`, the name of the user to access the EC2 instance
 * `consul_master_ip`, the ip address of the instance you want to use as consul master
 * `chaincode_repository`, the gitrepository where the chaincode can be found
-* `chaincode_path`, the path to the chaincode inside the chaincode github repository
+* `chaincode_base_path`, the path to the chaincode inside the chaincode github repository
 * `chaincode_build`, specify if the chaincode should be build first, this will execute "npm run build"
 * `private_ssh_key_for_chaincode_repo`, the path to the private key needed to get access to to the chaincode repository
 * `public_ssh_key_for_chaincode_repo`, the path to the public key needed to get access to to the chaincode repository

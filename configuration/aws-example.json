@@ -8,7 +8,7 @@
     "ssh_username": "ubuntu",
     "consul_master_ip": "10.42.1.4",
     "chaincode_repository": "git@github.com:user/project.git",
-    "chaincode_path": ".",
+    "chaincode_base_path": ".",
     "chaincode_build": true,
     "private_ssh_key_for_chaincode_repo": "~/.ssh/user",
     "public_ssh_key_for_chaincode_repo": "~/.ssh/user.pem",
