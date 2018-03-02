@@ -134,10 +134,7 @@ def bootstrap(parsed_args):
     gen_path = os.path.join(base_path, 'generated')
     call('rm -rfd', conf_path)
     call('cp -r', to_pwd('../configuration'), conf_path)
-    crypto_config = os.path.join(conf_path, 'crypto_config-example.yaml')
-    new_args = Namespace(crypto_config=crypto_config, genPath=gen_path, onlyChannelArtifacts=False, noOverride=False, configtxBase=None, user=None)
-    gen_cryptographic_material(new_args)
-
+    print 'You can start modifying the files inside {0} and then generate all the artifacts using "kuma-hf-network generate {1} --genPath {2}"'.format(conf_path, os.path.join(conf_path, 'crypto_config.yaml'), gen_path)
 
 def update_tool(parsed_args):
     call("curl -fsSL", install_script, " | bash")
