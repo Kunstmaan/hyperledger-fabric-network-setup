@@ -129,10 +129,12 @@ def update_chaincodes(parsed_args):
     call(gen_path + '/scripts/update_remote_chaincodes.sh')
 
 def bootstrap(parsed_args):
-    call('rm -rfd ./example-configuration')
-    call('cp -r', to_pwd('../configuration'), './example-configuration')
-    crypto_config = './example-configuration/crypto_config-example.yaml'
-    gen_path = './example-configuration/generated'
+    base_path = os.path.normpath(os.path.join('.', parsed_args.path))
+    conf_path = os.path.join(base_path, 'configuration')
+    gen_path = os.path.join(base_path, 'generated')
+    call('rm -rfd', conf_path)
+    call('cp -r', to_pwd('../configuration'), conf_path)
+    crypto_config = os.path.join(conf_path, 'crypto_config-example.yaml')
     new_args = Namespace(crypto_config=crypto_config, genPath=gen_path, onlyChannelArtifacts=False, noOverride=False, configtxBase=None, user=None)
     gen_cryptographic_material(new_args)
 
@@ -151,6 +153,8 @@ SUBPARSERS = PARSER.add_subparsers()
 #           BOOTSTRAP
 #######################################
 PARSER_BOOTSTRAP = SUBPARSERS.add_parser('bootstrap', help="""generate example configuration.""")
+PARSER_BOOTSTRAP.add_argument('path', type=str, help='the path where the example configuration should be bootstrapped.', default='.')
+
 PARSER_BOOTSTRAP.set_defaults(func=bootstrap)
 
 #######################################
