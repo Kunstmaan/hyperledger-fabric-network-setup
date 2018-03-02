@@ -32,10 +32,10 @@ kuma-hf-network -h
 When you want to create a new network configuration, you can initialize a new network with the following command:
 
 ```
-kuma-hf-network boostrap
+kuma-hf-network boostrap .
 ```
 
-This will create a default aws configuration and network configuration and generate all the artifacts based on this configuration.
+This will create a default aws configuration and network configuration at the provided path and generate all the artifacts based on this configuration.
 
 ## Generate certificates, docker files, channel artifacts
 
