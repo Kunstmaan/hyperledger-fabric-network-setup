@@ -77,7 +77,7 @@ Bring the network back down.
 kuma-hf-network update-chaincodes
 ```
 
-Upgrade the chaincodes on the network based on the version in the `package.json` of each chaincode. This script depends on the chaincodes being generated with the [hyperledger-fabric-chaincode-dev-setup](https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup).
+Upgrade the chaincodes on the network based on the version in the `package.json` of each chaincode. This script depends on the chaincodes being generated with the [hyperledger-fabric-chaincode-dev-setup](https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup) and the version inside the package.json will be used to see if a certain chaincode needs to be updated or not.
 
 ## Update the current tool
 
