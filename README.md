@@ -89,7 +89,7 @@ Update the script to the latest version.
 
 # AWS Configuration
 
-In the back we are using the aws cli utility, make sure this is configured correctly by running àws configure`. And setting the following environment variables: 
+In the back we are using the aws cli utility, make sure this is configured correctly by running `aws configure`. And setting the following environment variables: 
    * `AWS_SECRET_ACCESS_KEY`, your aws secret key
    * `AWS_ACCESS_KEY_ID`, your aws access key id
 
