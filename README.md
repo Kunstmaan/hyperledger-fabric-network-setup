@@ -77,7 +77,7 @@ Bring the network back down.
 kuma-hf-network update-chaincodes
 ```
 
-Upgrade the chaincodes on the network based on the version in the `package.json` of each chaincode. This script depends on the chaincodes being generated with the [hyperledger-fabric-chaincode-dev-setup](https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup).
+Upgrade the chaincodes on the network based on the version in the `package.json` of each chaincode. This script depends on the chaincodes being generated with the [hyperledger-fabric-chaincode-dev-setup](https://github.com/Kunstmaan/hyperledger-fabric-chaincode-dev-setup) and the version inside the package.json will be used to see if a certain chaincode needs to be updated or not.
 
 ## Update the current tool
 
@@ -89,7 +89,7 @@ Update the script to the latest version.
 
 # AWS Configuration
 
-In the back we are using the aws cli utility, make sure this is configured correctly by running àws configure`. And setting the following environment variables: 
+In the back we are using the aws cli utility, make sure this is configured correctly by running `aws configure`. And setting the following environment variables: 
    * `AWS_SECRET_ACCESS_KEY`, your aws secret key
    * `AWS_ACCESS_KEY_ID`, your aws access key id
 
