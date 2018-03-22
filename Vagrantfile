@@ -50,7 +50,7 @@ PRIVATE_KEY_PATH = AWS_CFG['private_key_path'].freeze
 
 GEN_PATH = ENV['GEN_PATH'].freeze
 SHARED_PATH = "#{INSTALL_DIR}/shared/".freeze
-HYPERLEDGER_VERSION = '1.1.0-preview'.freeze
+HYPERLEDGER_VERSION = '1.1.0'.freeze
 DOCKER0_IP_ADDRESS = '172.17.0.1'.freeze
 CONSUL_MASTER_IP = AWS_CFG['consul_master_ip'].freeze
 
