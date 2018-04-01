@@ -98,7 +98,7 @@ https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
 
 ## Configuring your AWS EC2 Instances
 
-First you need to configure your AWS account, make sure a VPC is created with a keypair to access it, it's own subnet and security-group. A detailed tutorial can be found [here](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html). When this is all configured you can start modifying the configuration file so that this script can bring the network up. Configuring the network can be done via the [aws configuration file](./configuration/aws-example.json). This is the configuration file you need to provide when running `kuma-hf-network network-up`.
+First you need to configure your AWS account, make sure a VPC is created with a keypair to access it, it's own subnet and security-group. A detailed tutorial can be found [here](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html). When this is all configured you can start modifying the configuration file so that this script can bring the network up. Configuring the network can be done via the [aws configuration file](./configuration/aws.json). This is the configuration file you need to provide when running `kuma-hf-network network-up`.
 
 * `region`, the region to start the instances in, for example "eu-west-1"
 * `availability_zone`, the availability zone within the region to launch the instance. If nil, it will use the default set by Amazon.
