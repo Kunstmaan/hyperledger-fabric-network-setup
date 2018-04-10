@@ -27,21 +27,10 @@ set_peer_env(){
 # path to the folder which contains the channel tx and blocks, relative to working dir of tools container
 CONFIGTX_PATH=/etc/hyperledger/configtx
 
-install_ping(){
-  if ping > /dev/null 2>&1; then puts "Ping is already installed. Skipping..."; else {
-    puts "Installing Ping..."
-    sudo apt-get update
-    sudo apt-get install -y iputils-ping
-    puts "Done."
-  }; fi
-}
-
-install_ping
-
-# Waits for a peer to answer to ping
+# Waits for a peer to answer to curl
 wait_for_host(){
   HOST_TO_TEST=$1
-  until ping -c1 $HOST_TO_TEST &>/dev/null; do puts "Waiting for host $HOST_TO_TEST to come online..."; sleep 3; done
+  until [[ "$(curl $HOST_TO_TEST 2> /dev/null; echo $?)" != 6 ]]; do puts "Waiting for host $HOST_TO_TEST to come online..."; sleep 3; done
   puts "Host $HOST_TO_TEST is online !"
 }
 
