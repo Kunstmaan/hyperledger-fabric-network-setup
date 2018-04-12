@@ -68,6 +68,13 @@ EXPLORER_DATA_PROD = {
     "GOPATH": "../artifacts",
     "keyValueStore": "/tmp/fabric-client-kvs",
     "eventWaitTime": "30000",
+    "pg": {
+        "host": "localhost",
+        "port": "5432",
+        "database": "fabricexplorer",
+        "username": "hppoc",
+        "passwd": "password"
+    },
     "mysql": {
         "host": "mysql",
         "port": "3306",
@@ -86,6 +93,13 @@ EXPLORER_DATA_DEV = {
     "GOPATH": "../artifacts",
     "keyValueStore": "/tmp/fabric-client-kvs",
     "eventWaitTime": "30000",
+    "pg": {
+        "host": "localhost",
+        "port": "5432",
+        "database": "fabricexplorer",
+        "username": "hppoc",
+        "passwd": "password"
+    },
     "mysql": {
         "host": "mysql",
         "port": "3306",
