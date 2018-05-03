@@ -68,7 +68,7 @@ EXPLORER_DATA_PROD = {
     "GOPATH": "../artifacts",
     "keyValueStore": "/tmp/fabric-client-kvs",
     "eventWaitTime": "30000",
-    "mysql": {
+    "pg": {
         "host": "mysql",
         "port": "3306",
         "database": "fabricexplorer",
@@ -86,7 +86,7 @@ EXPLORER_DATA_DEV = {
     "GOPATH": "../artifacts",
     "keyValueStore": "/tmp/fabric-client-kvs",
     "eventWaitTime": "30000",
-    "mysql": {
+    "pg": {
         "host": "mysql",
         "port": "3306",
         "database": "fabricexplorer",
@@ -423,7 +423,7 @@ if args.user:
         except yaml.YAMLError as exc:
             print exc
             exit(1)
-    
+
     if not org:
         print 'Unknown organisation {0}'.format(args.org)
         exit(1)
