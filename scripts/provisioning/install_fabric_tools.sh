@@ -47,7 +47,7 @@ if hlisinstalled > /dev/null 2>&1; then puts "Hyperledger is already installed. 
   mkdir $HLPATH
   pushd $HLPATH > /dev/null
   echo "===> Downloading platform binaries"
-  curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/${ARCH}-${VERSION}/hyperledger-fabric-${ARCH}-${VERSION}.tar.gz | tar xz
+  curl -k https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/${ARCH}-${VERSION}/hyperledger-fabric-${ARCH}-${VERSION}.tar.gz | tar xz
   popd > /dev/null
   updatePath $HLPATH/bin
   puts "Done."
