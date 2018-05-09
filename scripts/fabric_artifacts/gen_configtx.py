@@ -408,5 +408,5 @@ call("cp", to_pwd('channel_tools.sh'), GEN_PATH + '/channel')
 call("mkdir -p", GEN_PATH + '/devmode/chaincode')
 
 
-call('pushd', GEN_PATH + '/channel', '&&', './' + DEVMODE_ARTIFACT_SCRIPT_NAME, '&&', "popd")
-call('pushd', GEN_PATH + '/channel', '&&', './' + ARTIFACT_SCRIPT_NAME, '&&', "popd")
+call('cd', GEN_PATH + '/channel', '&&', './' + DEVMODE_ARTIFACT_SCRIPT_NAME, '&&', "cd", "..")
+call('cd', GEN_PATH + '/channel', '&&', './' + ARTIFACT_SCRIPT_NAME, '&&', "cd", "..")
