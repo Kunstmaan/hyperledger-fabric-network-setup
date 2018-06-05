@@ -49,7 +49,7 @@ create_channel(){
   if ! peer channel list | grep -q -e "^$CHANNEL_ID$"; then
       puts "Creating channel block for $CHANNEL_ID..."
       peer channel create --cafile $ORDERER_CA -c $CHANNEL_ID -f $CONFIGTX_PATH/$CHANNEL_ID.tx -o $ORDERER.$ORDERER_ORG:7050 --tls true
-      if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ]
+      if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ] && [ -f "$CHANNEL_ID.block" ]
       then
           mv $CHANNEL_ID.block $CONFIGTX_PATH
       fi
