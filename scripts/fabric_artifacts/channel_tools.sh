@@ -47,13 +47,14 @@ create_channel(){
   set_peer_env $PEER $PEER_ORG
 
   if ! peer channel list | grep -q -e "^$CHANNEL_ID$"; then
-      puts "Creating channel block for $CHANNEL_ID..."
-      peer channel create --cafile $ORDERER_CA -c $CHANNEL_ID -f $CONFIGTX_PATH/$CHANNEL_ID.tx -o $ORDERER.$ORDERER_ORG:7050 --tls true
-      if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ] && [ -f "$CHANNEL_ID.block" ]
-      then
+      if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ]; then
+          puts "Creating channel block for $CHANNEL_ID..."
+          peer channel create --cafile $ORDERER_CA -c $CHANNEL_ID -f $CONFIGTX_PATH/$CHANNEL_ID.tx -o $ORDERER.$ORDERER_ORG:7050 --tls true
           mv $CHANNEL_ID.block $CONFIGTX_PATH
+          puts "Done. Created $CHANNEL_ID.block"
+      else
+          puts "Channel block $CHANNEL_ID already created"'!'
       fi
-      puts "Done. Created $CHANNEL_ID.block"
   else
       puts "Channel $CHANNEL_ID already exists."
   fi
