@@ -44,14 +44,20 @@ create_channel(){
   # The orderer ca does not have to be combined, it can just be its tls cert
   # Does not seem like one has to specify the cafile nor the orderer, seems like the peer finds them by itself
   ORDERER_CA="/etc/hyperledger/crypto-config/$ORDERER_ORG/orderers/$ORDERER.$ORDERER_ORG/tlsca.combined.$ORDERER.$ORDERER_ORG-cert.pem"
-  puts "Creating channel block for $CHANNEL_ID..."
   set_peer_env $PEER $PEER_ORG
-  peer channel create --cafile $ORDERER_CA -c $CHANNEL_ID -f $CONFIGTX_PATH/$CHANNEL_ID.tx -o $ORDERER.$ORDERER_ORG:7050 --tls true
-  if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ]
-  then
-      mv $CHANNEL_ID.block $CONFIGTX_PATH
+
+  if ! peer channel list | grep -q -e "^$CHANNEL_ID$"; then
+      if [ ! -f "$CONFIGTX_PATH/$CHANNEL_ID.block" ]; then
+          puts "Creating channel block for $CHANNEL_ID..."
+          peer channel create --cafile $ORDERER_CA -c $CHANNEL_ID -f $CONFIGTX_PATH/$CHANNEL_ID.tx -o $ORDERER.$ORDERER_ORG:7050 --tls true
+          mv $CHANNEL_ID.block $CONFIGTX_PATH
+          puts "Done. Created $CHANNEL_ID.block"
+      else
+          puts "Channel block $CHANNEL_ID already created"'!'
+      fi
+  else
+      puts "Channel $CHANNEL_ID already exists."
   fi
-  puts "Done. Created $CHANNEL_ID.block"
 }
 
 join_channel(){
@@ -66,7 +72,7 @@ join_channel(){
 
   puts "Peer $PEER.$PEER_ORG is trying to join channel $CHANNEL_ID..."
   set_peer_env $PEER $PEER_ORG
-  if peer channel list | grep -q $CHANNEL_ID; then
+  if peer channel list | grep -q -e "^$CHANNEL_ID$"; then
       puts "Peer $PEER.$PEER_ORG is already part of channel $CHANNEL_ID"
   else
       peer channel join --cafile $ORDERER_CA -b $CONFIGTX_PATH/$CHANNEL_ID.block
